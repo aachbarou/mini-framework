@@ -1,26 +1,15 @@
-// RichFramework - richouan's custom framework
+// RichFramework - Unified Framework (richouan's custom framework)
+// Combines all our core modules
 
-// Create the framework object directly (no class)
 window.RichFramework = {
-    // Method to create simple HTML
-    createElement: function(tag, text) {
-        console.log(`Creating element: ${tag} with text: ${text}`);
-        return `<${tag}>${text}</${tag}>`;
-    },
+    // Will be populated by core modules
+    version: '1.0.0',
     
-    // Method to put HTML on page
-    render: function(html, selector) {
-        console.log(`Rendering HTML to: ${selector}`);
-        const element = document.querySelector(selector);
-        if (element) {
-            element.innerHTML = html;
-            console.log('Render successful!');
-        } else {
-            console.log('ERROR: Target element not found!');
-        }
+    // Initialize the framework
+    init: function() {
+        console.log('🚀 RichFramework v' + this.version + ' initialized!');
+        console.log('Available methods:', Object.keys(this));
     }
 };
 
-console.log('RichFramework started!');
-console.log('createElement exists:', typeof window.RichFramework.createElement);
-console.log('render exists:', typeof window.RichFramework.render);
+console.log('RichFramework base loaded - waiting for core modules...');

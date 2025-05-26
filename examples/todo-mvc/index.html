@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TodoMVC - RichFramework Test</title>
+    <title>TodoMVC - RichFramework</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">Loading...</div>
     
+    <!-- Load in correct order -->
     <script src="../../src/framework.js"></script>
+    <script src="../../src/core/virtual-dom.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
