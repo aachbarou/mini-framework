@@ -6,7 +6,7 @@ if (!window.RichFramework) {
     console.error('❌ RichFramework base not found! Load framework.js first!');
 }
 
-// Virtual Node class (KEEP THIS SAME)
+// Virtual Node class
 class VNode {
     constructor(tag, props = {}, children = []) {
         this.tag = tag;           
@@ -17,13 +17,13 @@ class VNode {
     }
 }
 
-// Helper functions (KEEP THIS SAME)
+// Helper functions
 function createElement(tag, props = {}, ...children) {
     const flatChildren = children.flat();
     return new VNode(tag, props, flatChildren);
 }
 
-// UPDATED: createRealElement with EVENT SUPPORT!
+// COMPLETELY FIXED: createRealElement with PROPER SUPPORT!
 function createRealElement(vnode) {
     console.log('Converting to real DOM:', vnode);
     
@@ -38,30 +38,41 @@ function createRealElement(vnode) {
         for (const [key, value] of Object.entries(vnode.props)) {
             if (key === 'className') {
                 element.className = value;
+                console.log(`✅ Set className: ${value}`);
             } else if (key.startsWith('on') && typeof value === 'function') {
-                // NEW: Handle event listeners!
-                const eventName = key.slice(2).toLowerCase(); // onClick -> click
+                // Handle event listeners!
+                const eventName = key.slice(2).toLowerCase();
                 element.addEventListener(eventName, value);
-                console.log(`✅ Added ${eventName} event listener to ${vnode.tag}`);
+                console.log(`✅ Added ${eventName} event to ${vnode.tag}`);
+            } else if (key === 'value') {
+                // CRITICAL FIX: Handle value as PROPERTY not attribute!
+                element.value = value;
+                console.log(`✅ Set value PROPERTY: ${value}`);
+            } else if (key === 'checked') {
+                // CRITICAL FIX: Handle checked as PROPERTY not attribute!
+                element.checked = value;
+                console.log(`✅ Set checked PROPERTY: ${value}`);
             } else {
+                // Handle normal attributes
                 element.setAttribute(key, value);
+                console.log(`✅ Set attribute ${key}: ${value}`);
             }
         }
         
-        // Add children (KEEP THIS SAME)
+        // Add children
         for (const child of vnode.children) {
             const childElement = createRealElement(child);
             element.appendChild(childElement);
         }
         
-        console.log('Created real element with events:', element);
+        console.log('Created real element:', element);
         return element;
     }
     
     return document.createTextNode('');
 }
 
-// KEEP render function SAME
+// Render function
 function render(vnode, container) {
     console.log('Rendering to container:', container);
     
@@ -72,15 +83,15 @@ function render(vnode, container) {
     console.log('Render complete! 🎯');
 }
 
-// ADD TO FRAMEWORK (KEEP THIS SAME)
+// Add to framework
 window.RichFramework.VNode = VNode;
 window.RichFramework.createElement = createElement;
 window.RichFramework.createRealElement = createRealElement;
 window.RichFramework.render = render;
 
-console.log('✅ Virtual DOM with EVENT SUPPORT loaded!');
+console.log('✅ Virtual DOM FIXED VERSION loaded!');
 
-// Initialize framework after all modules loaded
+// Initialize framework
 if (window.RichFramework.init) {
     window.RichFramework.init();
 }

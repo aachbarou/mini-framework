@@ -1,4 +1,4 @@
-    body {
+body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background: #f5f5f5;
     color: #4d4d4d;
@@ -29,4 +29,75 @@ h1 {
     font-size: 24px;
     width: 100%;
     box-sizing: border-box;
+}
+
+.todo-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.todo-list li {
+    position: relative;
+    font-size: 24px;
+    border-bottom: 1px solid #ededed;
+}
+
+.todo-list li.completed label {
+    color: #d9d9d9;
+    text-decoration: line-through;
+}
+
+.todo-list li .toggle {
+    text-align: center;
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
+    border: none;
+    appearance: none;
+}
+
+.todo-list li .toggle:checked:after {
+    content: '✓';
+}
+
+.todo-list li label {
+    padding: 15px 15px 15px 60px;
+    display: block;
+    line-height: 1.2;
+    transition: color 0.4s;
+}
+
+.todo-list li .destroy {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    bottom: 0;
+    width: 40px;
+    height: 40px;
+    margin: auto 0;
+    font-size: 30px;
+    color: #cc9a9a;
+    margin-bottom: 11px;
+    transition: color 0.2s ease-out;
+    background: none;
+    border: none;
+}
+
+.todo-list li .destroy:hover {
+    color: #af5b5e;
+}
+
+.view {
+    position: relative;
+}
+
+footer {
+    padding: 10px 15px;
+    height: 20px;
+    text-align: center;
+    border-top: 1px solid #e6e6e6;
 }
