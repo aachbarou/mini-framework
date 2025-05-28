@@ -1,13 +1,38 @@
-// TodoMVC - ACTUALLY FIXED VERSION
+// TodoMVC - ROUTER INTEGRATED VERSION
 
 window.addEventListener('DOMContentLoaded', function() {
     console.log('🎯 Building TodoMVC...');
     
-    // Create todos state only
+    // Create states
     const todos = RichFramework.createState([]);
+    const filter = RichFramework.createState('all'); // NEW: filter state
     
     // Keep input value in local variable, NOT state
     let inputValue = '';
+    
+    // Router integration - Update filter when route changes
+    RichFramework.onRouteChange((newRoute) => {
+        console.log('📍 Route changed to:', newRoute);
+        
+        if (newRoute === '/' || newRoute === '') {
+            filter.value = 'all';
+        } else if (newRoute === '/active') {
+            filter.value = 'active';
+        } else if (newRoute === '/completed') {
+            filter.value = 'completed';
+        }
+        console.log('🔍 Filter updated to:', filter.value);
+    });
+    
+    // Initialize route on page load
+    const currentRoute = RichFramework.getCurrentRoute();
+    if (currentRoute === '/' || currentRoute === '') {
+        filter.value = 'all';
+    } else if (currentRoute === '/active') {
+        filter.value = 'active';
+    } else if (currentRoute === '/completed') {
+        filter.value = 'completed';
+    }
     
     // Functions
     function addTodo() {
@@ -37,17 +62,41 @@ window.addEventListener('DOMContentLoaded', function() {
         todos.value = newTodos;
     }
     
+    // NEW: Get filtered todos based on current filter
+    function getFilteredTodos() {
+        const allTodos = todos.value;
+        const currentFilter = filter.value;
+        
+        if (currentFilter === 'active') {
+            return allTodos.filter(todo => !todo.done);
+        } else if (currentFilter === 'completed') {
+            return allTodos.filter(todo => todo.done);
+        }
+        return allTodos; // 'all'
+    }
+    
+    // NEW: Clear completed todos
+    function clearCompleted() {
+        const newTodos = todos.value.filter(todo => !todo.done);
+        todos.value = newTodos;
+    }
+    
     // Render function
     function renderApp() {
-        console.log('🎨 Rendering app...');
+        console.log('🎨 Rendering app... Filter:', filter.value);
         
-        // Input - NO state binding, just local events
+        // Get filtered todos for display
+        const filteredTodos = getFilteredTodos();
+        const activeTodosCount = todos.value.filter(t => !t.done).length;
+        const completedTodosCount = todos.value.filter(t => t.done).length;
+        
+        // Input
         const input = RichFramework.createElement('input', {
             className: 'new-todo',
             placeholder: 'What needs to be done?',
             type: 'text',
             onInput: (e) => {
-                inputValue = e.target.value; // Update local variable only
+                inputValue = e.target.value;
                 console.log('⌨️ Input:', inputValue);
             },
             onKeydown: (e) => {
@@ -57,8 +106,8 @@ window.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Todo items
-        const todoItems = todos.value.map(todo => 
+        // Todo items (filtered)
+        const todoItems = filteredTodos.map(todo => 
             RichFramework.createElement('li', {
                 className: todo.done ? 'completed' : ''
             }, 
@@ -78,25 +127,76 @@ window.addEventListener('DOMContentLoaded', function() {
             )
         );
         
+        // Filter buttons
+        const filterButtons = RichFramework.createElement('ul', { className: 'filters' },
+            RichFramework.createElement('li', {},
+                RichFramework.createElement('a', {
+                    className: filter.value === 'all' ? 'selected' : '',
+                    href: '#/',
+                    onClick: (e) => {
+                        e.preventDefault();
+                        RichFramework.navigate('/');
+                    }
+                }, 'All')
+            ),
+            RichFramework.createElement('li', {},
+                RichFramework.createElement('a', {
+                    className: filter.value === 'active' ? 'selected' : '',
+                    href: '#/active',
+                    onClick: (e) => {
+                        e.preventDefault();
+                        RichFramework.navigate('/active');
+                    }
+                }, 'Active')
+            ),
+            RichFramework.createElement('li', {},
+                RichFramework.createElement('a', {
+                    className: filter.value === 'completed' ? 'selected' : '',
+                    href: '#/completed',
+                    onClick: (e) => {
+                        e.preventDefault();
+                        RichFramework.navigate('/completed');
+                    }
+                }, 'Completed')
+            )
+        );
+        
+        // Clear completed button (only show if there are completed todos)
+        const clearCompletedButton = completedTodosCount > 0 ? 
+            RichFramework.createElement('button', {
+                className: 'clear-completed',
+                onClick: clearCompleted
+            }, `Clear completed (${completedTodosCount})`) : null;
+        
+        // Footer (only show if there are todos)
+        const footer = todos.value.length > 0 ? 
+            RichFramework.createElement('footer', { className: 'footer' },
+                RichFramework.createElement('span', { className: 'todo-count' }, 
+                    `${activeTodosCount} item${activeTodosCount !== 1 ? 's' : ''} left`
+                ),
+                filterButtons,
+                clearCompletedButton
+            ) : null;
+        
         // Main app
         const app = RichFramework.createElement('section', { className: 'todoapp' },
-            RichFramework.createElement('h1', {}, 'todos'),
-            input,
-            RichFramework.createElement('section', { className: 'main' },
-                RichFramework.createElement('ul', { className: 'todo-list' }, ...todoItems)
+            RichFramework.createElement('header', { className: 'header' },
+                RichFramework.createElement('h1', {}, 'todos'),
+                input
             ),
-            RichFramework.createElement('footer', {},
-                RichFramework.createElement('span', {}, 
-                    `${todos.value.filter(t => !t.done).length} items left`
-                )
-            )
+            todos.value.length > 0 ? 
+                RichFramework.createElement('section', { className: 'main' },
+                    RichFramework.createElement('ul', { className: 'todo-list' }, ...todoItems)
+                ) : null,
+            footer
         );
         
         RichFramework.render(app, document.getElementById('app'));
     }
     
-    // ONLY subscribe to todos changes, NOT input!
+    // Subscribe to both todos AND filter changes
     todos.subscribe(renderApp);
+    filter.subscribe(renderApp);
     
     // Initial render
     renderApp();
