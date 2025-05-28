@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bomberman - RichFramework</title>
+    <style>
+        body { margin: 0; padding: 0; background: #000; }
+        #game { width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="game">Loading Bomberman...</div>
+    
+    <!-- Framework loads -->
+    <script src="../../src/framework.js"></script>
+    <script src="../../src/core/events.js"></script>
+    <script src="../../src/core/VD-DiifingAlgo.js"></script> <!-- Use the fast Virtual DOM -->
+    <script src="../../src/core/state.js"></script>
+    
+    <script>
+        // FASTEST - Zero overhead initialization
+        RichFramework.run(function() {
+            console.log('🎮 Bomberman starting with zero overhead!');
+            
+            // Game state
+            const gameState = RichFramework.createState({
+                player: { x: 5, y: 5 },
+                bombs: [],
+                enemies: [],
+                score: 0
+            });
+            
+            // Game loop at 60fps
+            RichFramework.gameLoop((deltaTime) => {
+                // Update game logic here
+                updateGame(deltaTime);
+                renderGame();
+            }, 60);
+            
+            function updateGame(deltaTime) {
+                // Game logic updates
+            }
+            
+            function renderGame() {
+                // Render with Virtual DOM
+                const gameView = RichFramework.createElement('div', { id: 'game' },
+                    RichFramework.createElement('h1', {}, 'Bomberman'),
+                    RichFramework.createElement('p', {}, `Score: ${gameState.value.score}`)
+                );
+                RichFramework.render(gameView, document.getElementById('game'));
+            }
+        });
+    </script>
+</body>
+</html>

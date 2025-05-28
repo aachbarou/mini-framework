@@ -1,4 +1,4 @@
-// RichFramework - Virtual DOM Module with Events
+// RichFramework - Virtual DOM Module with Custom Events
 // Extends the main framework with Virtual DOM capabilities
 
 // Make sure framework base exists
@@ -12,6 +12,7 @@ class VNode {
         this.tag = tag;           
         this.props = props;       
         this.children = children; 
+        this.eventHandlers = []; // Track event handlers for cleanup
         
         console.log('Created VNode:', { tag, props, children });
     }
@@ -39,10 +40,14 @@ function createRealElement(vnode) {
                 element.className = value;
                 console.log(`✅ Set className: ${value}`);
             } else if (key.startsWith('on') && typeof value === 'function') {
-                // Handle event listeners!
+                // CHANGE: Use our custom event system
                 const eventName = key.slice(2).toLowerCase();
-                element.addEventListener(eventName, value);
-                console.log(`✅ Added ${eventName} event to ${vnode.tag}`);
+                
+                // Store cleanup function for later
+                const cleanup = RichFramework.events.on(element, eventName, value);
+                vnode.eventHandlers.push(cleanup);
+                
+                console.log(`✅ Added ${eventName} event to ${vnode.tag} using custom event system`);
             } else if (key === 'value') {
                 // CRITICAL FIX: Handle value as PROPERTY not attribute!
                 element.value = value;
@@ -51,6 +56,16 @@ function createRealElement(vnode) {
                 // CRITICAL FIX: Handle checked as PROPERTY not attribute!
                 element.checked = value;
                 console.log(`✅ Set checked PROPERTY: ${value}`);
+            } else if (key === 'htmlFor') {
+                // Handle htmlFor -> for attribute mapping
+                element.setAttribute('for', value);
+                console.log(`✅ Set for attribute: ${value}`);
+            } else if (key === 'autofocus') {
+                // Handle autofocus as boolean attribute
+                if (value) {
+                    element.setAttribute('autofocus', '');
+                }
+                console.log(`✅ Set autofocus attribute: ${value}`);
             } else {
                 // Handle normal attributes
                 element.setAttribute(key, value);
@@ -64,6 +79,13 @@ function createRealElement(vnode) {
             element.appendChild(childElement);
         }
         
+        // Store reference to event handlers for cleanup
+        if (vnode.eventHandlers.length > 0) {
+            element._eventCleanup = () => {
+                vnode.eventHandlers.forEach(cleanup => cleanup());
+            };
+        }
+        
         console.log('Created real element:', element);
         return element;
     }
@@ -71,9 +93,32 @@ function createRealElement(vnode) {
     return document.createTextNode('');
 }
 
+// Clean up event handlers when removing elements
+function cleanupElement(element) {
+    if (element._eventCleanup) {
+        element._eventCleanup();
+    }
+    
+    // Recursively cleanup children
+    if (element.childNodes) {
+        Array.from(element.childNodes).forEach(child => {
+            if (child.nodeType === 1) { // Element node
+                cleanupElement(child);
+            }
+        });
+    }
+}
+
 // Render function
 function render(vnode, container) {
     console.log('Rendering to container:', container);
+    
+    // Clean up existing elements first
+    Array.from(container.childNodes).forEach(child => {
+        if (child.nodeType === 1) { // Element node
+            cleanupElement(child);
+        }
+    });
     
     container.innerHTML = '';
     const realElement = createRealElement(vnode);
@@ -88,7 +133,7 @@ window.RichFramework.createElement = createElement;
 window.RichFramework.createRealElement = createRealElement;
 window.RichFramework.render = render;
 
-console.log('✅ Virtual DOM FIXED VERSION loaded!');
+console.log('✅ Virtual DOM with CUSTOM EVENTS loaded!');
 
 // Initialize framework
 if (window.RichFramework.init) {

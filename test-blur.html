@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blur Event Test</title>
+</head>
+<body>
+    <h1>Blur Event Test</h1>
+    <input id="testInput" type="text" placeholder="Type here and click elsewhere...">
+    <button id="testButton">Click me to steal focus</button>
+    <div id="log"></div>
+
+    <script>
+        const log = document.getElementById('log');
+        const input = document.getElementById('testInput');
+        
+        function addLog(message) {
+            log.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        // Test 1: Standard addEventListener blur
+        input.addEventListener('blur', function(e) {
+            addLog('✅ Standard addEventListener blur fired!');
+        });
+        
+        // Test 2: onblur property
+        input.onblur = function(e) {
+            addLog('✅ onblur property fired!');
+        };
+        
+        // Test 3: Document-level blur catching (like our system)
+        document.onblur = function(e) {
+            addLog('🔍 Document onblur fired - target: ' + e.target.tagName);
+        };
+        
+        addLog('🎯 Test setup complete. Try typing in the input and clicking the button.');
+    </script>
+</body>
+</html>

@@ -7,8 +7,9 @@
 <body>
     <div id="app">Loading...</div>
     
-    <!-- Load in correct order -->
+    <!-- Load in correct order - Note the addition of events.js -->
     <script src="../../src/framework.js"></script>
+    <script src="../../src/core/events.js"></script> <!-- NEW: Load events before virtual-dom -->
     <script src="../../src/core/virtual-dom.js"></script>
     <script src="../../src/core/state.js"></script>
     <script src="../../src/core/router.js"></script>
