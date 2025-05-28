@@ -23,7 +23,6 @@ function createElement(tag, props = {}, ...children) {
     return new VNode(tag, props, flatChildren);
 }
 
-// COMPLETELY FIXED: createRealElement with PROPER SUPPORT!
 function createRealElement(vnode) {
     console.log('Converting to real DOM:', vnode);
     
