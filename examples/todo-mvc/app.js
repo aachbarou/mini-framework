@@ -146,8 +146,8 @@ RichFramework.ready(function() {
         todos.value = newTodos;
     }
     
-    // Render function - The event handlers inside createElement will now use our custom system
-    function renderApp() {
+    // Render function with performance monitoring
+    const renderApp = RichFramework.wrapRender(function() {
         // Get filtered todos for display
         const filteredTodos = getFilteredTodos();
         const activeTodosCount = todos.value.filter(t => !t.done).length;
@@ -161,13 +161,16 @@ RichFramework.ready(function() {
             className: 'new-todo',
             placeholder: 'What needs to be done?',
             autofocus: true,
+            value: inputValue, // Bind the current input value
             onInput: (e) => {
-                // Our custom event system will pass a similar event object
+                // Update input value without triggering re-render
                 inputValue = e.target.value;
+                // Don't call renderApp() here to avoid excessive re-renders
             },
             onKeydown: (e) => {
-                // Our custom event system will handle the key event
-                if (e.originalEvent.key === 'Enter') {
+                // Handle both native events and custom event system
+                const key = e.key || (e.originalEvent && e.originalEvent.key);
+                if (key === 'Enter') {
                     addTodo();
                 }
             },
@@ -192,12 +195,16 @@ RichFramework.ready(function() {
                         type: 'text',
                         value: currentEditValue,
                         onInput: (e) => {
-                            editValue.value = e.target.value;
+                            // Update the local variable instead of state to prevent re-renders
+                            const newValue = e.target.value;
+                            // Only update state if we need to (we could debounce this)
+                            editValue.value = newValue;
                         },
                         onKeydown: (e) => {
-                            if (e.originalEvent.key === 'Enter') {
+                            const key = e.key || (e.originalEvent && e.originalEvent.key);
+                            if (key === 'Enter') {
                                 saveEditedTodo(todo.id);
-                            } else if (e.originalEvent.key === 'Escape') {
+                            } else if (key === 'Escape') {
                                 cancelEditingTodo();
                             }
                         },
@@ -318,7 +325,10 @@ RichFramework.ready(function() {
         
         // Render will use our updated virtual-dom system
         RichFramework.render(app, document.getElementById('app'));
-    }
+    });
+    
+    // Start performance monitoring for 60fps validation
+    RichFramework.startPerformanceMonitoring();
     
     // Subscribe to todos, filter, and editing state changes
     todos.subscribe(renderApp);

@@ -78,7 +78,10 @@ function updateElement(element, oldProps = {}, newProps = {}) {
                 }
                 element.addEventListener(eventName, value);
             } else if (key === 'value') {
-                element.value = value;
+                // Only update value if it's different from current DOM value
+                if (element.value !== value) {
+                    element.value = value;
+                }
             } else if (key === 'checked') {
                 element.checked = value;
             } else if (key !== 'key') { // Skip the key prop

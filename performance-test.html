@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RichFramework Performance Test - 60fps Validation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007acc;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .test-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            min-height: 200px;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .btn {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #005c99;
+        }
+        .btn.danger {
+            background: #dc3545;
+        }
+        .btn.danger:hover {
+            background: #c82333;
+        }
+        .log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .optimal { color: #28a745; }
+        .warning { color: #ffc107; }
+        .critical { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 RichFramework Performance Test</h1>
+        <p>Testing 60fps capability for Bomberman game development</p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="fps">--</div>
+                <div class="stat-label">Current FPS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRender">--</div>
+                <div class="stat-label">Avg Render (ms)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="maxRender">--</div>
+                <div class="stat-label">Max Render (ms)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="status">--</div>
+                <div class="stat-label">Performance Status</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="startStressTest()">🔥 Start Stress Test</button>
+            <button class="btn" onclick="runBenchmarks()">📊 Run Benchmarks</button>
+            <button class="btn" onclick="testTodoMVC()">✅ Test TodoMVC</button>
+            <button class="btn danger" onclick="clearLog()">🗑️ Clear Log</button>
+        </div>
+        
+        <div class="test-area" id="test-area">
+            <p>Test area - Dynamic content will appear here</p>
+        </div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <!-- Load RichFramework -->
+    <script src="../src/framework.js"></script>
+    <script src="../src/core/events.js"></script>
+    <script src="../src/core/VD-DiifingAlgo.js"></script>
+    <script src="../src/core/state.js"></script>
+    <script src="../src/core/router.js"></script>
+    <script src="../performance/benchmarks.js"></script>
+    
+    <script>
+        // Test application
+        let stressTestRunning = false;
+        let testItems = RichFramework.createState([]);
+        let updateCount = 0;
+        
+        // Logging function
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'critical' : type === 'warn' ? 'warning' : type === 'success' ? 'optimal' : '';
+            logEl.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        // Update performance stats display
+        function updateStatsDisplay() {
+            const stats = RichFramework.getPerformanceStats();
+            document.getElementById('fps').textContent = stats.fps || '--';
+            document.getElementById('avgRender').textContent = stats.avgRenderTime || '--';
+            document.getElementById('maxRender').textContent = stats.maxRenderTime || '--';
+            
+            // Determine status
+            let status = 'UNKNOWN';
+            let statusClass = '';
+            
+            if (stats.isOptimal) {
+                status = 'OPTIMAL';
+                statusClass = 'optimal';
+            } else if (stats.fps >= 30) {
+                status = 'GOOD';
+                statusClass = 'warning';
+            } else {
+                status = 'POOR';
+                statusClass = 'critical';
+            }
+            
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = status;
+            statusEl.className = `stat-value ${statusClass}`;
+        }
+        
+        // Stress test - Create many dynamic elements
+        function startStressTest() {
+            if (stressTestRunning) {
+                stressTestRunning = false;
+                log('🛑 Stress test stopped', 'warn');
+                return;
+            }
+            
+            stressTestRunning = true;
+            log('🔥 Starting stress test - Creating 1000 dynamic elements', 'info');
+            RichFramework.startPerformanceMonitoring();
+            
+            // Create initial test data
+            const initialItems = [];
+            for (let i = 0; i < 1000; i++) {
+                initialItems.push({
+                    id: i,
+                    value: Math.floor(Math.random() * 1000),
+                    color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
+                });
+            }
+            testItems.value = initialItems;
+            
+            // Update items rapidly
+            const stressInterval = setInterval(() => {
+                if (!stressTestRunning) {
+                    clearInterval(stressInterval);
+                    return;
+                }
+                
+                // Update random items
+                const newItems = testItems.value.map(item => ({
+                    ...item,
+                    value: Math.floor(Math.random() * 1000),
+                    color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
+                }));
+                testItems.value = newItems;
+                updateCount++;
+                
+                if (updateCount % 60 === 0) { // Every ~1 second at 60fps
+                    updateStatsDisplay();
+                    const stats = RichFramework.getPerformanceStats();
+                    if (stats.fps < 30) {
+                        log(`⚠️ Performance warning: ${stats.fps}fps`, 'warn');
+                    }
+                }
+                
+                if (updateCount >= 300) { // Stop after 5 seconds
+                    stressTestRunning = false;
+                    clearInterval(stressInterval);
+                    log(`✅ Stress test completed: ${updateCount} updates`, 'success');
+                    updateStatsDisplay();
+                }
+            }, 16); // ~60fps
+        }
+        
+        // Run comprehensive benchmarks
+        async function runBenchmarks() {
+            log('📊 Starting comprehensive benchmark suite...', 'info');
+            
+            const benchmark = new RichFramework.BenchmarkSuite();
+            
+            // Virtual DOM creation test
+            benchmark.addTest('Virtual DOM Creation', () => {
+                return RichFramework.createElement('div', { className: 'test' },
+                    RichFramework.createElement('span', {}, 'Hello World')
+                );
+            });
+            
+            // Virtual DOM diffing test
+            let oldVNode = RichFramework.createElement('div', { id: 'test' }, 'old');
+            benchmark.addTest('Virtual DOM Diffing', () => {
+                const newVNode = RichFramework.createElement('div', { id: 'test' }, Math.random().toString());
+                // Simulate diff (we'd need access to internal diff function)
+                return newVNode;
+            });
+            
+            // State updates test
+            const testState = RichFramework.createState(0);
+            benchmark.addTest('State Updates', () => {
+                testState.value = testState.value + 1;
+            });
+            
+            // Event handling test
+            benchmark.addTest('Event Handler Creation', () => {
+                return RichFramework.createElement('button', {
+                    onClick: () => console.log('clicked')
+                }, 'Button');
+            });
+            
+            const results = await benchmark.runBenchmarks();
+            
+            // Log results
+            results.forEach(result => {
+                const isGood = parseFloat(result.avgTime) < 1.0;
+                log(`${result.name}: ${result.avgTime}ms avg (${result.opsPerSecond} ops/sec)`, 
+                    isGood ? 'success' : 'warn');
+            });
+        }
+        
+        // Test TodoMVC functionality
+        function testTodoMVC() {
+            log('✅ Testing TodoMVC integration...', 'info');
+            
+            // Open TodoMVC in new window
+            const todoWindow = window.open('../todo-mvc/index.html', '_blank');
+            
+            if (todoWindow) {
+                log('📱 TodoMVC opened in new window - Test manually', 'success');
+                log('Expected: 60fps performance, smooth interactions', 'info');
+            } else {
+                log('❌ Failed to open TodoMVC - popup blocked?', 'error');
+            }
+        }
+        
+        // Render function for stress test
+        const renderStressTest = RichFramework.wrapRender(() => {
+            const items = testItems.value;
+            
+            const testApp = RichFramework.createElement('div', {},
+                RichFramework.createElement('h3', {}, `Stress Test: ${items.length} items (Update #${updateCount})`),
+                RichFramework.createElement('div', { 
+                    style: 'display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 2px; max-height: 150px; overflow-y: auto;' 
+                }, 
+                    ...items.slice(0, 100).map(item => // Only show first 100 for visibility
+                        RichFramework.createElement('div', {
+                            key: item.id,
+                            style: `background: ${item.color}; padding: 5px; border-radius: 2px; text-align: center; color: white; font-size: 10px;`
+                        }, item.value.toString())
+                    )
+                )
+            );
+            
+            RichFramework.render(testApp, document.getElementById('test-area'));
+        });
+        
+        // Initialize
+        RichFramework.ready(() => {
+            log('🚀 RichFramework Performance Test initialized', 'success');
+            log('Framework supports: Virtual DOM, State Management, Routing, Events', 'info');
+            log('Target: 60fps performance for Bomberman game development', 'info');
+            
+            // Subscribe to state changes
+            testItems.subscribe(renderStressTest);
+            
+            // Update stats every second
+            setInterval(updateStatsDisplay, 1000);
+            
+            // Initial render
+            renderStressTest();
+        });
+    </script>
+</body>
+</html>
