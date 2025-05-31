@@ -14,13 +14,13 @@ class Router {
             const oldRoute = this.currentRoute;
             this.currentRoute = newRoute;
             
-            console.log(`🔄 Route changed: ${oldRoute} → ${newRoute}`);
+            // console.log(`🔄 Route changed: ${oldRoute} → ${newRoute}`);
             
             // Notify all listeners
             this.listeners.forEach(listener => listener(newRoute, oldRoute));
         });
         
-        console.log('🔄 Router initialized, current route:', this.currentRoute);
+        // console.log('🔄 Router initialized, current route:', this.currentRoute);
     }
     
     getCurrentRoute() {

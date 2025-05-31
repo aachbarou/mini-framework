@@ -13,6 +13,7 @@ class State {
         console.log('🎯 Created state with value:', initialValue);
     }
     
+    // we use setter/getters and proxies like vue js (m9awdin 7na hihi)
     // Get current value
     get value() {
         return this._value;
@@ -25,6 +26,7 @@ class State {
         this._tellEveryone(); // This is the magic! ✨
     }
     
+    // Observer pattern (Gang of four 1994 -_-)
     // Subscribe = "Tell me when state changes"
     subscribe(listenerFunction) {
         this._listeners.push(listenerFunction);
