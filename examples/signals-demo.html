@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RichSignals Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .counter {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        .count {
+            font-size: 24px;
+            margin: 0 15px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .doubled, .tripled {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .stats {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .todos {
+            margin-top: 20px;
+        }
+        
+        .todo-input {
+            padding: 8px;
+            width: 70%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .todo-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .todo-item.completed {
+            text-decoration: line-through;
+            color: #999;
+        }
+        
+        .todo-checkbox {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>RichSignals Demo</h1>
+    <p>A lightweight, high-performance signals system for reactive web applications.</p>
+    
+    <h2>Simple Counter Example</h2>
+    <div class="counter">
+        <button id="decrement">-</button>
+        <div id="count" class="count">0</div>
+        <button id="increment">+</button>
+        
+        <div class="doubled">Doubled: <span id="doubled">0</span></div>
+        <div class="tripled">Tripled: <span id="tripled">0</span></div>
+    </div>
+    
+    <h2>Todo List Example</h2>
+    <div class="todos">
+        <div>
+            <input id="todo-input" class="todo-input" placeholder="Add a new todo...">
+            <button id="add-todo">Add</button>
+        </div>
+        <div>
+            <p>Completed: <span id="completed-count">0</span> / <span id="total-count">0</span></p>
+        </div>
+        <ul id="todo-list" class="todo-list"></ul>
+    </div>
+    
+    <div class="stats">
+        <h3>Performance Stats</h3>
+        <p>Total Signals: <span id="signal-count">0</span></p>
+        <p>Total Effects: <span id="effect-count">0</span></p>
+        <p>Time Since Start: <span id="time-since-start">0</span> ms</p>
+    </div>
+    
+    <!-- Load the standalone signals library -->
+    <script src="../src/signals-standalone.js"></script>
+    
+    <script>
+        // Use the RichSignals API
+        const { signal, computed, effect, batch, SignalsPerf } = RichSignals;
+        
+        // Start performance monitoring
+        SignalsPerf.start();
+        
+        // ===== COUNTER EXAMPLE =====
+        const count = signal(0);
+        const doubled = computed(() => count.value * 2);
+        const tripled = computed(() => count.value * 3);
+        
+        // Bind signals to DOM
+        bindSignalToText(document.getElementById('count'), count);
+        bindSignalToText(document.getElementById('doubled'), doubled);
+        bindSignalToText(document.getElementById('tripled'), tripled);
+        
+        // Add event listeners
+        document.getElementById('increment').addEventListener('click', () => {
+            count.set(count.value + 1);
+        });
+        
+        document.getElementById('decrement').addEventListener('click', () => {
+            count.set(count.value - 1);
+        });
+        
+        // ===== TODO LIST EXAMPLE =====
+        const todos = signal([]);
+        const newTodoText = signal('');
+        
+        // Computed signals for todo stats
+        const completedCount = computed(() => 
+            todos.value.filter(todo => todo.completed).length
+        );
+        
+        const totalCount = computed(() => todos.value.length);
+        
+        // Bind todo stats to DOM
+        bindSignalToText(document.getElementById('completed-count'), completedCount);
+        bindSignalToText(document.getElementById('total-count'), totalCount);
+        
+        // Bind input to signal
+        const todoInput = document.getElementById('todo-input');
+        todoInput.addEventListener('input', () => {
+            newTodoText.set(todoInput.value);
+        });
+        
+        // Add todo function
+        function addTodo() {
+            if (newTodoText.value.trim() === '') return;
+            
+            // Use batch for multiple updates
+            batch(() => {
+                const newTodos = [...todos.value];
+                newTodos.push({ 
+                    id: Date.now(), 
+                    text: newTodoText.value, 
+                    completed: false 
+                });
+                todos.set(newTodos);
+                newTodoText.set('');
+                todoInput.value = '';
+            });
+        }
+        
+        // Add event listener for add button
+        document.getElementById('add-todo').addEventListener('click', addTodo);
+        
+        // Add event listener for Enter key
+        todoInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addTodo();
+        });
+        
+        // Toggle todo completion
+        function toggleTodo(id) {
+            const newTodos = todos.value.map(todo => 
+                todo.id === id ? { ...todo, completed: !todo.completed } : todo
+            );
+            todos.set(newTodos);
+        }
+        
+        // Render todos effect
+        effect(() => {
+            const todoList = document.getElementById('todo-list');
+            todoList.innerHTML = '';
+            
+            todos.value.forEach(todo => {
+                const li = document.createElement('li');
+                li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'todo-checkbox';
+                checkbox.checked = todo.completed;
+                checkbox.addEventListener('change', () => toggleTodo(todo.id));
+                
+                const text = document.createElement('span');
+                text.textContent = todo.text;
+                
+                li.appendChild(checkbox);
+                li.appendChild(text);
+                todoList.appendChild(li);
+            });
+        });
+        
+        // ===== PERFORMANCE MONITORING =====
+        // Update stats every second
+        setInterval(() => {
+            const stats = SignalsPerf.checkPerformance();
+            document.getElementById('signal-count').textContent = stats.signalCount;
+            document.getElementById('effect-count').textContent = stats.effectCount;
+            document.getElementById('time-since-start').textContent = Math.round(stats.timeSinceStart);
+        }, 1000);
+        
+        console.log('🚀 RichSignals demo initialized');
+    </script>
+</body>
+</html>

@@ -1,54 +1,321 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Bomberman - RichFramework</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Enhanced Bomberman - Mini Framework</title>
     <style>
-        body { margin: 0; padding: 0; background: #000; }
-        #game { width: 100vw; height: 100vh; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .performance-overlay {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+            min-width: 150px;
+        }
+        
+        .fps-good { color: #00ff00; }
+        .fps-warning { color: #ffff00; }
+        .fps-bad { color: #ff0000; }
+        
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: #2c3e50;
+            overflow: hidden;
+        }
+        
+        .game-board {
+            position: absolute;
+            width: 768px; /* 24 * 32px */
+            height: 576px; /* 18 * 32px */
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #34495e;
+            border: 2px solid #ecf0f1;
+        }
+        
+        .player {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            z-index: 10;
+            will-change: transform; /* GPU optimization */
+            backface-visibility: hidden; /* GPU optimization */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: none; /* No CSS transitions for 60fps */
+        }
+        
+        .player-1 { background: #e74c3c; color: white; }
+        .player-2 { background: #3498db; color: white; }
+        .player-3 { background: #2ecc71; color: white; }
+        .player-4 { background: #f39c12; color: white; }
+        
+        .bomb {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #e67e22;
+            border-radius: 50%;
+            z-index: 5;
+            will-change: transform;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+            border: 2px solid #d35400;
+            animation: bomb-pulse 0.5s ease-in-out infinite alternate;
+        }
+        
+        .bomb.exploded {
+            background: #c0392b;
+            animation: none;
+        }
+        
+        @keyframes bomb-pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        .explosion {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: radial-gradient(circle, #ff6b35 0%, #f7931e 50%, #c0392b 100%);
+            z-index: 15;
+            will-change: transform;
+            backface-visibility: hidden;
+            animation: explosion-flash 0.5s ease-in-out;
+        }
+        
+        @keyframes explosion-flash {
+            0% { opacity: 1; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+        
+        .wall {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: #34495e;
+            border: 1px solid #2c3e50;
+            z-index: 1;
+        }
+        
+        .block {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: #8e44ad;
+            border: 1px solid #7d3c98;
+            z-index: 2;
+        }
+        
+        .powerup {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #f1c40f;
+            border-radius: 50%;
+            z-index: 8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            animation: powerup-glow 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes powerup-glow {
+            from { box-shadow: 0 0 5px #f39c12; }
+            to { box-shadow: 0 0 15px #f39c12; }
+        }
+        
+        .ui-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+        }
+        
+        .player-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            min-width: 150px;
+        }
+        
+        .player-lives {
+            display: flex;
+            gap: 3px;
+            margin: 5px 0;
+        }
+        
+        .life {
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+        }
+        
+        .wall {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: #7f8c8d;
+            border: 1px solid #95a5a6;
+            z-index: 1;
+        }
+        
+        .block {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: #8e44ad;
+            border: 1px solid #9b59b6;
+            z-index: 2;
+        }
+        
+        .powerup {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            z-index: 3;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            animation: powerup-glow 1s ease-in-out infinite alternate;
+        }
+        
+        .powerup-bomb { background: #e74c3c; color: white; }
+        .powerup-flame { background: #f39c12; color: white; }
+        .powerup-speed { background: #2ecc71; color: white; }
+        
+        .explosion {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: radial-gradient(circle, #f39c12, #e67e22);
+            z-index: 8;
+            animation: explosion-effect 0.5s ease-out;
+        }
+        
+        .ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+        
+        .player-info {
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .player-lives {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .life {
+            width: 12px;
+            height: 12px;
+            background: #e74c3c;
+            border-radius: 50%;
+        }
+        
+        @keyframes bomb-pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        @keyframes explosion {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(3); opacity: 0; }
+        }
+        
+        @keyframes explosion-effect {
+            0% { opacity: 1; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+        
+        @keyframes powerup-glow {
+            from { box-shadow: 0 0 5px rgba(255,255,255,0.5); }
+            to { box-shadow: 0 0 15px rgba(255,255,255,0.8); }
+        }
+        
+        /* CRITICAL: Layer promotion for better performance */
+        .player, .bomb, .explosion {
+            transform: translateZ(0); /* Force GPU layer */
+        }
     </style>
 </head>
 <body>
-    <div id="game">Loading Bomberman...</div>
+    <!-- Performance Monitor (Audit Requirement) -->
+    <div class="performance-overlay" id="performance">
+        <div>FPS: <span id="fps" class="fps-good">60</span></div>
+        <div>Frame: <span id="frametime">16.67ms</span></div>
+        <div>Signals: <span id="signals">0</span></div>
+        <div>Memory: <span id="memory">0MB</span></div>
+    </div>
     
-    <!-- Framework loads -->
-    <script src="../../src/framework.js"></script>
-    <script src="../../src/core/events.js"></script>
-    <script src="../../src/core/VD-DiifingAlgo.js"></script> <!-- Use the fast Virtual DOM -->
-    <script src="../../src/core/state.js"></script>
+    <!-- Game Container -->
+    <div class="game-container" id="gameContainer">
+        <div class="game-board" id="gameBoard">
+            <!-- Dynamic game elements -->
+        </div>
+        
+        <!-- UI Overlay -->
+        <div class="ui-overlay" id="uiOverlay">
+            <!-- Player info will be added here -->
+        </div>
+    </div>
+
+    <!-- Load Framework Scripts -->
+    <script src="../../src/signals-standalone.js"></script>
     
-    <script>
-        // FASTEST - Zero overhead initialization
-        RichFramework.run(function() {
-            console.log('🎮 Bomberman starting with zero overhead!');
-            
-            // Game state
-            const gameState = RichFramework.createState({
-                player: { x: 5, y: 5 },
-                bombs: [],
-                enemies: [],
-                score: 0
-            });
-            
-            // Game loop at 60fps
-            RichFramework.gameLoop((deltaTime) => {
-                // Update game logic here
-                updateGame(deltaTime);
-                renderGame();
-            }, 60);
-            
-            function updateGame(deltaTime) {
-                // Game logic updates
-            }
-            
-            function renderGame() {
-                // Render with Virtual DOM
-                const gameView = RichFramework.createElement('div', { id: 'game' },
-                    RichFramework.createElement('h1', {}, 'Bomberman'),
-                    RichFramework.createElement('p', {}, `Score: ${gameState.value.score}`)
-                );
-                RichFramework.render(gameView, document.getElementById('game'));
-            }
-        });
-    </script>
+    <!-- Load Bomberman Game Logic -->
+    <script src="app-signals.js"></script>
 </body>
 </html>

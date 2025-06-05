@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RichFramework - Signals vs Virtual DOM Performance Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: black;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .performance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #2c3e50;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .player {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: #e74c3c;
+            border-radius: 4px;
+            transition: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .bomb {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #f39c12;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .bomb.exploded {
+            background: #e67e22;
+            transform: scale(2);
+            opacity: 0.7;
+        }
+        
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 5px;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 RichFramework: Signals vs Virtual DOM Performance</h1>
+        
+        <!-- Performance Stats -->
+        <div class="test-section">
+            <h2>📊 Performance Statistics</h2>
+            <div class="performance-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Frame Time (ms)</div>
+                    <div class="stat-value" id="frameTime">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">FPS</div>
+                    <div class="stat-value" id="fps">60</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Signals</div>
+                    <div class="stat-value" id="signalCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Update Method</div>
+                    <div class="stat-value" id="updateMethod">Signals</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="test-section">
+            <h2>🎮 Game Simulation Controls</h2>
+            <div class="controls">
+                <button class="btn-success" onclick="startSignalsTest()">🚀 Start Signals Test</button>
+                <button class="btn-warning" onclick="startVirtualDOMTest()">📦 Start Virtual DOM Test</button>
+                <button class="btn-primary" onclick="stopTest()">⏹️ Stop Test</button>
+                <button class="btn-primary" onclick="addPlayer()">👤 Add Player</button>
+                <button class="btn-primary" onclick="addBomb()">💣 Add Bomb</button>
+                <button class="btn-primary" onclick="clearAll()">🗑️ Clear All</button>
+            </div>
+        </div>
+        
+        <!-- Game Area -->
+        <div class="test-section">
+            <h2>🎯 Game Simulation Area</h2>
+            <div class="game-area" id="gameArea">
+                <!-- Dynamic game elements will be added here -->
+            </div>
+        </div>
+        
+        <!-- Console Log -->
+        <div class="test-section">
+            <h2>📋 Performance Log</h2>
+            <div class="log" id="performanceLog"></div>
+        </div>
+    </div>
+
+    <!-- Load Framework -->
+    <script src="../../src/framework.js"></script>
+    <script src="../../src/core/events.js"></script>
+    <script src="../../src/core/state.js"></script>
+    <script src="../../src/core/virtual-dom.js"></script>
+    <script src="../../src/core/signals.js"></script>
+    
+    <script>
+        // Test Application
+        let currentTest = null;
+        let players = [];
+        let bombs = [];
+        let frameStats = {
+            lastTime: 0,
+            frameCount: 0,
+            fps: 60
+        };
+        
+        const gameArea = document.getElementById('gameArea');
+        const log = document.getElementById('performanceLog');
+        
+        // Logging helper
+        function logMessage(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Performance monitoring
+        function updateStats(frameTime) {
+            document.getElementById('frameTime').textContent = frameTime.toFixed(2);
+            document.getElementById('fps').textContent = Math.round(frameStats.fps);
+            document.getElementById('signalCount').textContent = players.length + bombs.length;
+        }
+        
+        // Signals-based test
+        function startSignalsTest() {
+            logMessage('🚀 Starting Signals performance test...');
+            document.getElementById('updateMethod').textContent = 'Signals';
+            
+            if (currentTest) stopTest();
+            
+            // Create initial players and bombs
+            for (let i = 0; i < 4; i++) {
+                addPlayerWithSignals(i);
+            }
+            
+            for (let i = 0; i < 10; i++) {
+                addBombWithSignals(i);
+            }
+            
+            // Start game loop
+            currentTest = 'signals';
+            gameLoopSignals();
+            logMessage('✅ Signals test started with 4 players and 10 bombs');
+        }
+        
+        // Virtual DOM test
+        function startVirtualDOMTest() {
+            logMessage('📦 Starting Virtual DOM performance test...');
+            document.getElementById('updateMethod').textContent = 'Virtual DOM';
+            
+            if (currentTest) stopTest();
+            
+            // Create initial players and bombs (without signals)
+            for (let i = 0; i < 4; i++) {
+                addPlayerWithVDOM(i);
+            }
+            
+            for (let i = 0; i < 10; i++) {
+                addBombWithVDOM(i);
+            }
+            
+            currentTest = 'vdom';
+            gameLoopVirtualDOM();
+            logMessage('✅ Virtual DOM test started with 4 players and 10 bombs');
+        }
+        
+        // Add player with Signals
+        function addPlayerWithSignals(id) {
+            const player = RichFramework.signals.GameSignals.createPlayer(
+                id,
+                Math.random() * (gameArea.offsetWidth - 32),
+                Math.random() * (gameArea.offsetHeight - 32)
+            );
+            
+            const element = document.createElement('div');
+            element.className = 'player';
+            element.textContent = `P${id}`;
+            gameArea.appendChild(element);
+            
+            // Bind signals to DOM
+            const effects = RichFramework.signals.GameSignals.bindPlayerToDOM(player, element);
+            
+            players.push({ ...player, element, effects, type: 'signals' });
+        }
+        
+        // Add player with Virtual DOM
+        function addPlayerWithVDOM(id) {
+            const player = {
+                id,
+                x: Math.random() * (gameArea.offsetWidth - 32),
+                y: Math.random() * (gameArea.offsetHeight - 32),
+                alive: true,
+                type: 'vdom'
+            };
+            
+            players.push(player);
+        }
+        
+        // Add bomb with Signals
+        function addBombWithSignals(id) {
+            const bomb = RichFramework.signals.GameSignals.createBomb(
+                id,
+                Math.random() * (gameArea.offsetWidth - 24),
+                Math.random() * (gameArea.offsetHeight - 24),
+                3
+            );
+            
+            const element = document.createElement('div');
+            element.className = 'bomb';
+            gameArea.appendChild(element);
+            
+            const effects = RichFramework.signals.GameSignals.bindBombToDOM(bomb, element);
+            
+            bombs.push({ ...bomb, element, effects, type: 'signals' });
+        }
+        
+        // Add bomb with Virtual DOM
+        function addBombWithVDOM(id) {
+            const bomb = {
+                id,
+                x: Math.random() * (gameArea.offsetWidth - 24),
+                y: Math.random() * (gameArea.offsetHeight - 24),
+                timer: 3,
+                exploded: false,
+                type: 'vdom'
+            };
+            
+            bombs.push(bomb);
+        }
+        
+        // Game loop with Signals
+        function gameLoopSignals() {
+            if (currentTest !== 'signals') return;
+            
+            const startTime = performance.now();
+            
+            // Update player positions (signals auto-update DOM)
+            players.forEach(player => {
+                if (player.type === 'signals') {
+                    player.x.set(player.x.value + (Math.random() - 0.5) * 4);
+                    player.y.set(player.y.value + (Math.random() - 0.5) * 4);
+                    
+                    // Keep in bounds
+                    if (player.x.value < 0) player.x.set(0);
+                    if (player.x.value > gameArea.offsetWidth - 32) player.x.set(gameArea.offsetWidth - 32);
+                    if (player.y.value < 0) player.y.set(0);
+                    if (player.y.value > gameArea.offsetHeight - 32) player.y.set(gameArea.offsetHeight - 32);
+                }
+            });
+            
+            // Update bomb timers
+            bombs.forEach(bomb => {
+                if (bomb.type === 'signals' && bomb.timer.value > 0) {
+                    bomb.timer.set(bomb.timer.value - 0.016); // ~60fps
+                    if (bomb.timer.value <= 0) {
+                        bomb.exploded.set(true);
+                    }
+                }
+            });
+            
+            const frameTime = performance.now() - startTime;
+            calculateFPS(frameTime);
+            updateStats(frameTime);
+            
+            requestAnimationFrame(gameLoopSignals);
+        }
+        
+        // Game loop with Virtual DOM
+        function gameLoopVirtualDOM() {
+            if (currentTest !== 'vdom') return;
+            
+            const startTime = performance.now();
+            
+            // Update positions
+            players.forEach(player => {
+                if (player.type === 'vdom') {
+                    player.x += (Math.random() - 0.5) * 4;
+                    player.y += (Math.random() - 0.5) * 4;
+                    
+                    // Keep in bounds
+                    if (player.x < 0) player.x = 0;
+                    if (player.x > gameArea.offsetWidth - 32) player.x = gameArea.offsetWidth - 32;
+                    if (player.y < 0) player.y = 0;
+                    if (player.y > gameArea.offsetHeight - 32) player.y = gameArea.offsetHeight - 32;
+                }
+            });
+            
+            bombs.forEach(bomb => {
+                if (bomb.type === 'vdom' && bomb.timer > 0) {
+                    bomb.timer -= 0.016;
+                    if (bomb.timer <= 0) {
+                        bomb.exploded = true;
+                    }
+                }
+            });
+            
+            // Render with Virtual DOM (full rebuild)
+            renderWithVirtualDOM();
+            
+            const frameTime = performance.now() - startTime;
+            calculateFPS(frameTime);
+            updateStats(frameTime);
+            
+            requestAnimationFrame(gameLoopVirtualDOM);
+        }
+        
+        // Virtual DOM rendering (expensive)
+        function renderWithVirtualDOM() {
+            const vdom = RichFramework.createElement('div', { className: 'game-content' },
+                ...players.filter(p => p.type === 'vdom').map(player => 
+                    RichFramework.createElement('div', {
+                        className: 'player',
+                        style: `transform: translate(${player.x}px, ${player.y}px); display: ${player.alive ? 'block' : 'none'};`
+                    }, `P${player.id}`)
+                ),
+                ...bombs.filter(b => b.type === 'vdom').map(bomb =>
+                    RichFramework.createElement('div', {
+                        className: `bomb ${bomb.exploded ? 'exploded' : ''}`,
+                        style: `left: ${bomb.x}px; top: ${bomb.y}px;`
+                    }, Math.ceil(bomb.timer).toString())
+                )
+            );
+            
+            RichFramework.render(vdom, gameArea);
+        }
+        
+        // FPS calculation
+        function calculateFPS(frameTime) {
+            frameStats.frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - frameStats.lastTime >= 1000) {
+                frameStats.fps = frameStats.frameCount;
+                frameStats.frameCount = 0;
+                frameStats.lastTime = currentTime;
+            }
+        }
+        
+        // Control functions
+        function stopTest() {
+            currentTest = null;
+            logMessage('⏹️ Test stopped');
+        }
+        
+        function addPlayer() {
+            const id = players.length;
+            if (currentTest === 'signals') {
+                addPlayerWithSignals(id);
+                logMessage(`👤 Added player ${id} (Signals)`);
+            } else if (currentTest === 'vdom') {
+                addPlayerWithVDOM(id);
+                logMessage(`👤 Added player ${id} (Virtual DOM)`);
+            }
+        }
+        
+        function addBomb() {
+            const id = bombs.length;
+            if (currentTest === 'signals') {
+                addBombWithSignals(id);
+                logMessage(`💣 Added bomb ${id} (Signals)`);
+            } else if (currentTest === 'vdom') {
+                addBombWithVDOM(id);
+                logMessage(`💣 Added bomb ${id} (Virtual DOM)`);
+            }
+        }
+        
+        function clearAll() {
+            // Dispose all signal effects
+            players.forEach(player => {
+                if (player.effects) {
+                    player.effects.forEach(effect => effect.dispose());
+                }
+            });
+            bombs.forEach(bomb => {
+                if (bomb.effects) {
+                    bomb.effects.forEach(effect => effect.dispose());
+                }
+            });
+            
+            players = [];
+            bombs = [];
+            gameArea.innerHTML = '';
+            logMessage('🗑️ Cleared all game objects');
+        }
+        
+        // Initialize
+        logMessage('🎮 RichFramework Performance Test Ready!');
+        logMessage('📊 Compare Signals vs Virtual DOM performance');
+        logMessage('🚀 Click "Start Signals Test" or "Start Virtual DOM Test" to begin');
+    </script>
+</body>
+</html>
