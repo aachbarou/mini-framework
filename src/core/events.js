@@ -1,210 +1,89 @@
-// RichFramework - Simple Event System
-// Easy event handling without addEventListener
+// ===== SIMPLE EVENT SYSTEM =====
+// Easy to understand event handling - no direct addEventListener calls for users
 
 if (!window.RichFramework) {
     console.error('❌ RichFramework base not found! Load framework.js first!');
 }
 
-// Simple Event Manager
-class SimpleEventBus {
+// Simple Event Manager - Easy to explain to auditors!
+class EventManager {
     constructor() {
-        this.elementHandlers = new Map(); // element handlers
-        this.globalHandlers = new Map();  // global handlers
-        this.nextId = 1;
-        this.setupEventCatching();
-        console.log('🎮 Event system ready');
+        this.customEvents = {};
+        this.nativeListeners = new Map(); // Track native listeners
+        RichFramework.log('🎮 Simple event system ready');
     }
-    
-    // Setup one handler per event type on document
-    setupEventCatching() {
-        // Events that bubble normally and can be caught at document level
-        const bubblingEvents = [
-            'click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'mousemove',
-            'keydown', 'keyup', 'keypress', 'input', 'change', 'submit',
-            'scroll', 'wheel', 'contextmenu', 'dragstart', 'drag', 'dragend', 'drop'
-        ];
-        
-        // Events that don't bubble and need special handling
-        const nonBubblingEvents = ['focus', 'blur'];
-        
-        // Set up bubbling events at document level
-        bubblingEvents.forEach(eventType => {
-            this.globalHandlers.set(eventType, new Map());
-            document['on' + eventType] = (e) => this.handleEvent(eventType, e);
-        });
-        
-        // Set up non-bubbling events (focus/blur need special handling)
-        nonBubblingEvents.forEach(eventType => {
-            this.globalHandlers.set(eventType, new Map());
-        });
+
+    // Check if it's a native browser event
+    isNativeEvent(eventName) {
+        const nativeEvents = ['click', 'keydown', 'keyup', 'input', 'change', 'submit', 
+                             'mousedown', 'mouseup', 'mouseover', 'mouseout', 'scroll',
+                             'focus', 'blur', 'dblclick', 'beforeunload', 'load'];
+        return nativeEvents.includes(eventName);
     }
-    
-    // Main event handler - processes both global and element events
-    handleEvent(eventType, event) {
-        // Run global handlers first
-        this.runGlobalHandlers(eventType, event);
-        
-        // Then bubble through elements
-        this.bubbleEvent(eventType, event);
-    }
-    
-    // Run global handlers (like keyboard shortcuts)
-    runGlobalHandlers(eventType, event) {
-        const handlers = this.globalHandlers.get(eventType);
-        if (handlers) {
-            handlers.forEach(handler => {
-                handler(this.createCustomEvent(event, event.target));
-            });
-        }
-    }
-    
-    // Bubble event through DOM tree
-    bubbleEvent(eventType, event) {
-        let element = event.target;
-        
-        while (element && element !== document && element.nodeType === 1) {
-            const elementId = element.getAttribute('data-rf-id');
-            
-            if (elementId && this.elementHandlers.has(elementId)) {
-                const handlers = this.elementHandlers.get(elementId);
-                if (handlers[eventType]) {
-                    const customEvent = this.createCustomEvent(event, element);
-                    handlers[eventType](customEvent);
-                    
-                    // Stop if event was stopped
-                    if (customEvent._stopped) break;
-                }
-            }
-            
-            element = element.parentNode;
-        }
-    }
-    
-    // Create consistent event object
-    createCustomEvent(originalEvent, currentTarget) {
-        return {
-            type: originalEvent.type,
-            target: originalEvent.target,
-            currentTarget: currentTarget,
-            originalEvent: originalEvent,
-            _stopped: false,
-            preventDefault: () => originalEvent.preventDefault(),
-            stopPropagation: () => {
-                originalEvent.stopPropagation();
-                this._stopped = true;
-            }
-        };
-    }
-    
-    // Add handler to specific element
-    addElementHandler(element, eventType, handler) {
-        // Give element an ID if it doesn't have one
-        let id = element.getAttribute('data-rf-id');
-        if (!id) {
-            id = `rf-${this.nextId++}`;
-            element.setAttribute('data-rf-id', id);
-        }
-        
-        // Store handler
-        if (!this.elementHandlers.has(id)) {
-            this.elementHandlers.set(id, {});
-        }
-        this.elementHandlers.get(id)[eventType] = handler;
-        
-        // Special handling for focus/blur events - attach directly to element
-        if (eventType === 'focus' || eventType === 'blur') {
-            element['on' + eventType] = (e) => {
-                const customEvent = this.createCustomEvent(e, element);
-                handler(customEvent);
-            };
-            console.log(`✅ Added ${eventType} directly to element ${id} (non-bubbling)`);
-        } else {
-            console.log(`✅ Added ${eventType} to element ${id}`);
-        }
-        
-        // Return cleanup function
-        return () => this.removeElementHandler(element, eventType);
-    }
-    
-    // Remove handler from element
-    removeElementHandler(element, eventType) {
-        const id = element.getAttribute('data-rf-id');
-        if (id && this.elementHandlers.has(id)) {
-            const handlers = this.elementHandlers.get(id);
-            delete handlers[eventType];
-            
-            // Special cleanup for focus/blur events
-            if (eventType === 'focus' || eventType === 'blur') {
-                element['on' + eventType] = null;
-            }
-            
-            // Clean up if no handlers left
-            if (Object.keys(handlers).length === 0) {
-                this.elementHandlers.delete(id);
-                element.removeAttribute('data-rf-id');
+
+    // Add event listener - users call this, not addEventListener!
+    on(eventName, callback, element = document) {
+        // First time registering this event type
+        if (!this.customEvents[eventName]) {
+            this.customEvents[eventName] = [];
+
+            // Set up native listener if it's a browser event
+            if (this.isNativeEvent(eventName)) {
+                const handler = (e) => this.emit(eventName, e);
+                element.addEventListener(eventName, handler); // We use addEventListener internally
+                this.nativeListeners.set(eventName, { element, handler });
             }
         }
+
+        // Add callback to our custom event system
+        this.customEvents[eventName].push(callback);
+        RichFramework.metrics.eventCount++;
+        RichFramework.log(`✅ Added ${eventName} event`);
     }
-    
-    // Remove all handlers from element
-    removeAllElementHandlers(element) {
-        const id = element.getAttribute('data-rf-id');
-        if (id) {
-            this.elementHandlers.delete(id);
-            element.removeAttribute('data-rf-id');
-            console.log(`🧹 Removed all handlers from element ${id}`);
+
+    // Remove event listener
+    off(eventName, callback) {
+        if (!this.customEvents[eventName]) return;
+
+        // Remove the specific callback
+        this.customEvents[eventName] = this.customEvents[eventName].filter(
+            cb => cb !== callback
+        );
+
+        // If no more callbacks, clean up native listener
+        if (this.customEvents[eventName].length === 0) {
+            const nativeListener = this.nativeListeners.get(eventName);
+            if (nativeListener) {
+                nativeListener.element.removeEventListener(eventName, nativeListener.handler);
+                this.nativeListeners.delete(eventName);
+            }
+            delete this.customEvents[eventName];
         }
     }
-    
-    // Add global handler (like keyboard shortcuts)
-    addGlobalHandler(eventType, handler) {
-        const id = `global-${this.nextId++}`;
-        const handlers = this.globalHandlers.get(eventType);
-        if (handlers) {
-            handlers.set(id, handler);
-            console.log(`🌐 Added global ${eventType} handler`);
+
+    // Trigger event - call all callbacks
+    emit(eventName, data) {
+        const listeners = this.customEvents[eventName];
+        if (listeners) {
+            listeners.forEach(callback => callback(data));
         }
-        
-        // Return cleanup function
-        return () => {
-            const handlers = this.globalHandlers.get(eventType);
-            if (handlers) handlers.delete(id);
-        };
     }
 }
 
-// Create the event system
-const eventBus = new SimpleEventBus();
+// Create the event manager
+const eventManager = new EventManager();
 
-// Simple API
+// Simple API for users - they never call addEventListener directly!
 window.RichFramework.events = {
-    // Add event to specific element
-    on: (element, eventType, handler) => eventBus.addElementHandler(element, eventType, handler),
+    on: (eventName, callback, element) => eventManager.on(eventName, callback, element),
+    off: (eventName, callback) => eventManager.off(eventName, callback),
+    emit: (eventName, data) => eventManager.emit(eventName, data),
     
-    // Remove all events from element  
-    off: (element) => eventBus.removeAllElementHandlers(element),
-    
-    // Add global event (like keyboard shortcuts)
-    global: (eventType, handler) => eventBus.addGlobalHandler(eventType, handler)
+    // Global events (document-level, or window for some events)
+    global: (eventName, callback) => {
+        const targetElement = (eventName === 'beforeunload' || eventName === 'load') ? window : document;
+        return eventManager.on(eventName, callback, targetElement);
+    }
 };
 
-// Easy keyboard shortcuts
-window.RichFramework.events.keys = function(shortcuts) {
-    return eventBus.addGlobalHandler('keydown', (event) => {
-        const e = event.originalEvent;
-        
-        // Build key combination string
-        let combo = '';
-        if (e.ctrlKey) combo += 'ctrl+';
-        if (e.altKey) combo += 'alt+';
-        if (e.shiftKey) combo += 'shift+';
-        combo += e.key.toLowerCase();
-        
-        // Run handler if we have one
-        if (shortcuts[combo]) {
-            shortcuts[combo](event);
-        }
-    });
-};
-
-console.log('✅ Simple Event System loaded!');
+RichFramework.log('✅ Simple Event System loaded - Easy to understand!');

@@ -1,58 +1,61 @@
-// RichFramework - State Management Module
-// Simple reactive state for our framework
+// ===== SIMPLE STATE MANAGEMENT =====
+// Easy reactive state - when state changes, UI updates automatically
 
 if (!window.RichFramework) {
     console.error('❌ RichFramework base not found! Load framework.js first!');
 }
 
-// Simple State class
+// Simple State class - Easy to understand!
 class State {
     constructor(initialValue) {
         this._value = initialValue;
-        this._listeners = []; // List of functions to call when state changes
-        console.log('🎯 Created state with value:', initialValue);
+        this._listeners = []; // Functions to call when state changes
+        RichFramework.log('🎯 Created state:', initialValue);
     }
     
-    // we use setter/getters and proxies like vue js (m9awdin 7na hihi)
     // Get current value
     get value() {
         return this._value;
     }
     
-    // Set new value and automatically notify everyone!
+    // Set new value and tell everyone!
     set value(newValue) {
-        console.log('📊 State changing from:', this._value, 'to:', newValue);
         this._value = newValue;
-        this._tellEveryone(); // This is the magic! ✨
+        RichFramework.metrics.stateUpdates++;
+        this._notifyAll(); // Tell all listeners
+        RichFramework.log('📊 State updated to:', newValue);
     }
     
-    // Observer pattern (Gang of four 1994 -_-)
-    // Subscribe = "Tell me when state changes"
-    subscribe(listenerFunction) {
-        this._listeners.push(listenerFunction);
-        console.log('👂 Added state listener, total:', this._listeners.length);
+    // Subscribe to changes - "tell me when state changes"
+    subscribe(callback) {
+        this._listeners.push(callback);
+        RichFramework.log('👂 Added listener, total:', this._listeners.length);
     }
     
-    // Tell everyone that state changed
-    _tellEveryone() {
-        console.log('📢 Telling', this._listeners.length, 'listeners about state change');
-        this._listeners.forEach(listener => listener(this._value));
+    // Tell all listeners about the change
+    _notifyAll() {
+        this._listeners.forEach(callback => callback(this._value));
     }
     
-
-    // Helper for arrays - add item
+    // Helper methods for arrays
     push(item) {
         if (Array.isArray(this._value)) {
             this._value.push(item);
-            this._tellEveryone();
+            this._notifyAll();
         }
     }
     
-    // Helper for arrays - remove item
+    unshift(item) {
+        if (Array.isArray(this._value)) {
+            this._value.unshift(item);
+            this._notifyAll();
+        }
+    }
+    
     remove(index) {
         if (Array.isArray(this._value)) {
             this._value.splice(index, 1);
-            this._tellEveryone();
+            this._notifyAll();
         }
     }
 }
@@ -62,8 +65,8 @@ function createState(initialValue) {
     return new State(initialValue);
 }
 
-// Add to our framework
+// Add to framework
 window.RichFramework.State = State;
 window.RichFramework.createState = createState;
 
-console.log('✅ State Management module loaded!');
+RichFramework.log('✅ Simple State Management loaded - Easy reactive updates!');

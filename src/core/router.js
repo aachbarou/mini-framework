@@ -1,4 +1,7 @@
-// RichFramework Router - AUDIT-SAFE VERSION
+// ===== ROUTING SYSTEM =====
+// URL synchronization with application state
+// Hash-based routing for single-page applications
+
 if (!window.RichFramework) {
     console.error('❌ RichFramework base not found!');
 }
@@ -14,13 +17,13 @@ class Router {
             const oldRoute = this.currentRoute;
             this.currentRoute = newRoute;
             
-            // console.log(`🔄 Route changed: ${oldRoute} → ${newRoute}`);
+            // RichFramework.log(`🔄 Route changed: ${oldRoute} → ${newRoute}`);
             
             // Notify all listeners
             this.listeners.forEach(listener => listener(newRoute, oldRoute));
         });
         
-        // console.log('🔄 Router initialized, current route:', this.currentRoute);
+        // RichFramework.log('🔄 Router initialized, current route:', this.currentRoute);
     }
     
     getCurrentRoute() {
@@ -29,13 +32,13 @@ class Router {
     }
     
     navigate(path) {
-        console.log(`🧭 Navigating to: ${path}`);
+        RichFramework.log(`🧭 Navigating to: ${path}`);
         window.location.hash = path;
     }
     
     onRouteChange(callback) {
         this.listeners.push(callback);
-        console.log('👂 Route listener added');
+        RichFramework.log('👂 Route listener added');
     }
 }
 
@@ -48,4 +51,4 @@ window.RichFramework.navigate = (path) => router.navigate(path);
 window.RichFramework.getCurrentRoute = () => router.getCurrentRoute();
 window.RichFramework.onRouteChange = (callback) => router.onRouteChange(callback);
 
-console.log('✅ Router module loaded!');
+RichFramework.log('✅ Router module loaded - URL synchronization ready!');

@@ -3,6 +3,9 @@
 // Use the fastest initialization method - zero overhead!
 RichFramework.ready(function() {
     
+    // Simple ID counter - much cleaner than Date.now()!
+    let nextTodoId = 1;
+    
     // Create states
     const todos = RichFramework.createState([]);
     const filter = RichFramework.createState('all');
@@ -36,8 +39,8 @@ RichFramework.ready(function() {
     // Functions
     function addTodo() {
         if (inputValue.trim()) {
-            todos.push({
-                id: Date.now(),
+            todos.unshift({  // Use unshift() to add at the beginning (top of list)
+                id: nextTodoId++, // Clean incrementing ID: 1, 2, 3, 4...
                 text: inputValue.trim(),
                 done: false
             });
@@ -53,8 +56,8 @@ RichFramework.ready(function() {
     
     function addTodoOnBlur() {
         if (inputValue.trim()) {
-            todos.push({
-                id: Date.now(),
+            todos.unshift({  // Use unshift() to add at the beginning (top of list)
+                id: nextTodoId++, // Clean incrementing ID: 1, 2, 3, 4...
                 text: inputValue.trim(),
                 done: false
             });
@@ -182,9 +185,10 @@ RichFramework.ready(function() {
             const isEditing = editingTodo.value === todo.id;
             
             if (isEditing) {
-                // Editing mode - show input field
+                // Editing mode - show input field with data-id attribute
                 const currentEditValue = editValue.value || todo.text; // Fallback to todo.text
                 return RichFramework.createElement('li', {
+                    'data-id': todo.id,  // Add data-id attribute like original TodoMVC
                     className: 'editing'
                 },
                     RichFramework.createElement('input', {
@@ -207,8 +211,9 @@ RichFramework.ready(function() {
                     })
                 );
             } else {
-                // Normal mode - show todo item
+                // Normal mode - show todo item with data-id attribute like original TodoMVC
                 return RichFramework.createElement('li', {
+                    'data-id': todo.id,  // Add data-id attribute like original TodoMVC
                     className: todo.done ? 'completed' : ''
                 }, 
                     RichFramework.createElement('div', { className: 'view' },

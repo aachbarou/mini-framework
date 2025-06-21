@@ -1,5 +1,6 @@
-// RichFramework - Virtual DOM Module with Custom Events
-// Extends the main framework with Virtual DOM capabilities
+// ===== VIRTUAL DOM IMPLEMENTATION =====
+// DOM abstraction layer - creates JavaScript objects representing HTML
+// Only updates changed parts for better performance
 
 // Make sure framework base exists
 if (!window.RichFramework) {
@@ -14,7 +15,7 @@ class VNode {
         this.children = children; 
         this.eventHandlers = []; // Track event handlers for cleanup
         
-        console.log('Created VNode:', { tag, props, children });
+        RichFramework.log('Created VNode:', { tag, props, children });
     }
 }
 
@@ -25,7 +26,7 @@ function createElement(tag, props = {}, ...children) {
 }
 
 function createRealElement(vnode) {
-    console.log('Converting to real DOM:', vnode);
+    RichFramework.log('Converting to real DOM:', vnode);
     
     if (typeof vnode === 'string' || typeof vnode === 'number') {
         return document.createTextNode(vnode);
@@ -38,38 +39,56 @@ function createRealElement(vnode) {
         for (const [key, value] of Object.entries(vnode.props)) {
             if (key === 'className') {
                 element.className = value;
-                console.log(`✅ Set className: ${value}`);
+                RichFramework.log(`✅ Set className: ${value}`);
             } else if (key.startsWith('on') && typeof value === 'function') {
-                // CHANGE: Use our custom event system
-                const eventName = key.slice(2).toLowerCase();
+                // Use our simple event system
+                const eventName = key.slice(2).toLowerCase(); // onClick -> click
                 
-                // Store cleanup function for later
-                const cleanup = RichFramework.events.on(element, eventName, value);
-                vnode.eventHandlers.push(cleanup);
+                // Create a wrapper that checks if the event target matches this element
+                const elementHandler = (nativeEvent) => {
+                    if (nativeEvent.target === element || element.contains(nativeEvent.target)) {
+                        const customEvent = {
+                            type: nativeEvent.type,
+                            target: nativeEvent.target,
+                            currentTarget: element,
+                            originalEvent: nativeEvent,
+                            preventDefault: () => nativeEvent.preventDefault(),
+                            stopPropagation: () => nativeEvent.stopPropagation()
+                        };
+                        value(customEvent);
+                    }
+                };
                 
-                console.log(`✅ Added ${eventName} event to ${vnode.tag} using custom event system`);
+                // Add to our event system
+                RichFramework.events.on(eventName, elementHandler);
+                
+                // Store for cleanup
+                if (!element._eventCleanup) element._eventCleanup = [];
+                element._eventCleanup.push(() => RichFramework.events.off(eventName, elementHandler));
+                
+                RichFramework.log(`✅ Added ${eventName} event to ${vnode.tag}`);
             } else if (key === 'value') {
                 // CRITICAL FIX: Handle value as PROPERTY not attribute!
                 element.value = value;
-                console.log(`✅ Set value PROPERTY: ${value}`);
+                RichFramework.log(`✅ Set value PROPERTY: ${value}`);
             } else if (key === 'checked') {
                 // CRITICAL FIX: Handle checked as PROPERTY not attribute!
                 element.checked = value;
-                console.log(`✅ Set checked PROPERTY: ${value}`);
+                RichFramework.log(`✅ Set checked PROPERTY: ${value}`);
             } else if (key === 'htmlFor') {
                 // Handle htmlFor -> for attribute mapping
                 element.setAttribute('for', value);
-                console.log(`✅ Set for attribute: ${value}`);
+                RichFramework.log(`✅ Set for attribute: ${value}`);
             } else if (key === 'autofocus') {
                 // Handle autofocus as boolean attribute
                 if (value) {
                     element.setAttribute('autofocus', '');
                 }
-                console.log(`✅ Set autofocus attribute: ${value}`);
+                RichFramework.log(`✅ Set autofocus attribute: ${value}`);
             } else {
                 // Handle normal attributes
                 element.setAttribute(key, value);
-                console.log(`✅ Set attribute ${key}: ${value}`);
+                RichFramework.log(`✅ Set attribute ${key}: ${value}`);
             }
         }
         
@@ -80,13 +99,11 @@ function createRealElement(vnode) {
         }
         
         // Store reference to event handlers for cleanup
-        if (vnode.eventHandlers.length > 0) {
-            element._eventCleanup = () => {
-                vnode.eventHandlers.forEach(cleanup => cleanup());
-            };
+        if (element._eventCleanup && element._eventCleanup.length > 0) {
+            // Event cleanup is already handled above
         }
         
-        console.log('Created real element:', element);
+        RichFramework.log('Created real element:', element);
         return element;
     }
     
@@ -96,7 +113,8 @@ function createRealElement(vnode) {
 // Clean up event handlers when removing elements
 function cleanupElement(element) {
     if (element._eventCleanup) {
-        element._eventCleanup();
+        element._eventCleanup.forEach(cleanup => cleanup());
+        element._eventCleanup = [];
     }
     
     // Recursively cleanup children
@@ -109,9 +127,12 @@ function cleanupElement(element) {
     }
 }
 
-// Render function
+// Render function - converts Virtual DOM to real DOM
 function render(vnode, container) {
-    console.log('Rendering to container:', container);
+    RichFramework.log('Rendering to container:', container);
+    
+    // Track render for performance metrics
+    RichFramework.metrics.renderCount++;
     
     // Clean up existing elements first
     Array.from(container.childNodes).forEach(child => {
@@ -124,7 +145,7 @@ function render(vnode, container) {
     const realElement = createRealElement(vnode);
     container.appendChild(realElement);
     
-    console.log('Render complete! 🎯');
+    RichFramework.log('Render complete! 🎯');
 }
 
 // Add to framework
@@ -133,7 +154,7 @@ window.RichFramework.createElement = createElement;
 window.RichFramework.createRealElement = createRealElement;
 window.RichFramework.render = render;
 
-console.log('✅ Virtual DOM with CUSTOM EVENTS loaded!');
+RichFramework.log('✅ Virtual DOM with CUSTOM EVENTS loaded - DOM abstraction ready!');
 
 // Initialize framework
 if (window.RichFramework.init) {
