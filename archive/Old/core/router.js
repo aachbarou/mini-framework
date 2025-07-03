@@ -48,6 +48,11 @@ const router = new Router();
 // Simple API
 window.RichFramework.router = router;
 window.RichFramework.navigate = (path) => router.navigate(path);
+
+// ===== EXPORT FOR CLEAN IMPORTS =====
+export const navigate = (path) => router.navigate(path);
+export const onRouteChange = (callback) => router.onRouteChange(callback);
+export const getCurrentRoute = () => router.getCurrentRoute();
 window.RichFramework.getCurrentRoute = () => router.getCurrentRoute();
 window.RichFramework.onRouteChange = (callback) => router.onRouteChange(callback);
 

@@ -70,3 +70,7 @@ window.RichFramework.State = State;
 window.RichFramework.createState = createState;
 
 RichFramework.log('✅ Simple State Management loaded - Easy reactive updates!');
+
+// ===== EXPORT FOR CLEAN IMPORTS =====
+export { State };
+export { createState };

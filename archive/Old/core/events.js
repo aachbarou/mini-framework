@@ -87,3 +87,9 @@ window.RichFramework.events = {
 };
 
 RichFramework.log('✅ Simple Event System loaded - Easy to understand!');
+
+// ===== EXPORT FOR CLEAN IMPORTS =====
+export const on = RichFramework.events.on;
+export const off = RichFramework.events.off;
+export const emit = RichFramework.events.emit;
+export const onGlobal = RichFramework.events.global;

@@ -135,3 +135,14 @@ window.RichFramework.metrics = {
 };
 
 RichFramework.log('RichFramework base loaded - waiting for core modules...');
+
+// ===== EXPORT FOR CLEAN IMPORTS =====
+// Your friends can now import like: import { ready, bootstrap } from './framework.js'
+export const version = RichFramework.version;
+export const log = RichFramework.log.bind(RichFramework);
+export const bootstrap = RichFramework.bootstrap.bind(RichFramework);
+export const ready = RichFramework.ready.bind(RichFramework);
+export const run = RichFramework.run.bind(RichFramework);
+export const gameLoop = RichFramework.gameLoop.bind(RichFramework);
+export const fast = RichFramework.fast.bind(RichFramework);
+export const metrics = RichFramework.metrics;

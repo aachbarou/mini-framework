@@ -156,6 +156,11 @@ window.RichFramework.render = render;
 
 RichFramework.log('✅ Virtual DOM with CUSTOM EVENTS loaded - DOM abstraction ready!');
 
+// ===== EXPORT FOR CLEAN IMPORTS =====
+export { VNode };
+export const createElement = RichFramework.createElement;
+export const render = RichFramework.render;
+
 // Initialize framework
 if (window.RichFramework.init) {
     window.RichFramework.init();

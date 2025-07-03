@@ -1,16 +1,27 @@
-# 🏗️ Virtual DOM Documentation
+# 🏗️ Virtual DOM - Pure ES6 Module
 
-> Efficient DOM manipulation through JavaScript objects
+> Efficient DOM manipulation through JavaScript objects with pure ES6 imports
 
 ## 📖 Overview
 
-RichFramework's Virtual DOM creates JavaScript objects that represent your HTML structure. Instead of directly manipulating the DOM (which is slow), you describe what you want using JavaScript, and the framework efficiently creates the real DOM elements.
+The Virtual DOM module creates JavaScript objects that represent your HTML structure. Instead of directly manipulating the DOM (which is slow), you describe what you want using JavaScript, and the framework efficiently creates the real DOM elements.
 
 **Key Benefits:**
-- ✅ Faster than direct DOM manipulation
-- ✅ Declarative - describe what you want, not how to build it
-- ✅ Automatic event handling integration
-- ✅ Clean, readable code structure
+- ✅ **Pure ES6 Module** - No global objects, clean imports
+- ✅ **Faster than direct DOM** - Efficient element creation
+- ✅ **Declarative** - Describe what you want, not how to build it
+- ✅ **Automatic event handling** - Built-in event delegation
+- ✅ **Modern syntax** - Clean, readable code structure
+
+## 🚀 Import and Basic Usage
+
+```javascript
+import { createElement, render } from './Core/virtual-dom.js';
+
+// Simple usage
+const app = createElement('h1', {}, 'Hello World');
+render(app, document.getElementById('root'));
+```
 
 ## 🏗️ How It Works
 
@@ -24,80 +35,167 @@ div.appendChild(h1);
 document.body.appendChild(div);
 
 // ✅ Virtual DOM approach (fast and simple)
-const vdom = RichFramework.createElement('div', { className: 'container' },
-    RichFramework.createElement('h1', {}, 'Hello World')
+import { createElement, render } from './Core/virtual-dom.js';
+
+const vdom = createElement('div', { className: 'container' },
+    createElement('h1', {}, 'Hello World')
 );
-RichFramework.render(vdom, document.body);
+render(vdom, document.body);
 ```
 
-## 🚀 Basic Usage
+## 🎯 Creating Elements
 
-### Creating Elements
-
-#### Simple Elements
+### Simple Elements
 ```javascript
+import { createElement } from './Core/virtual-dom.js';
+
 // Text element
-RichFramework.createElement('h1', {}, 'Hello World')
+createElement('h1', {}, 'Hello World')
 
 // Element with attributes
-RichFramework.createElement('div', {
+createElement('div', {
     className: 'container',
     id: 'main-content'
 }, 'Content here')
 
 // Self-closing elements
-RichFramework.createElement('img', {
+createElement('img', {
     src: 'image.jpg',
     alt: 'Description'
 })
 
-RichFramework.createElement('input', {
+createElement('input', {
     type: 'text',
     placeholder: 'Enter your name'
 })
 ```
 
-#### Elements with Children
+### Elements with Children
 ```javascript
 // Single child
-RichFramework.createElement('div', {},
-    RichFramework.createElement('p', {}, 'Paragraph text')
+createElement('div', {},
+    createElement('p', {}, 'Paragraph text')
 )
 
 // Multiple children
-RichFramework.createElement('ul', {},
-    RichFramework.createElement('li', {}, 'Item 1'),
-    RichFramework.createElement('li', {}, 'Item 2'),
-    RichFramework.createElement('li', {}, 'Item 3')
+createElement('ul', {},
+    createElement('li', {}, 'Item 1'),
+    createElement('li', {}, 'Item 2'),
+    createElement('li', {}, 'Item 3')
 )
 
 // Mixed content
-RichFramework.createElement('div', {},
-    RichFramework.createElement('h2', {}, 'Title'),
+createElement('div', {},
+    createElement('h2', {}, 'Title'),
     'Some text content',
-    RichFramework.createElement('p', {}, 'A paragraph'),
-    RichFramework.createElement('button', {}, 'Click me')
+    createElement('p', {}, 'A paragraph'),
+    createElement('button', {}, 'Click me')
 )
 ```
 
-### Adding Attributes
+## 🎨 Adding Attributes
 
-#### CSS Classes and IDs
+### CSS Classes and IDs
 ```javascript
-RichFramework.createElement('div', {
+createElement('div', {
     className: 'card highlight',  // CSS classes
     id: 'user-card'              // Element ID
 })
 ```
 
-#### Data Attributes
+### Data Attributes
 ```javascript
-RichFramework.createElement('li', {
+createElement('li', {
     'data-id': '123',
     'data-category': 'electronics',
     'data-price': '99.99'
 }, 'Product item')
 ```
+
+### Form Attributes
+```javascript
+createElement('input', {
+    type: 'email',
+    placeholder: 'Enter email',
+    value: 'john@example.com',
+    required: true,
+    disabled: false
+})
+```
+
+## 🎪 Event Handling
+
+### Click Events
+```javascript
+createElement('button', {
+    onClick: (event) => {
+        console.log('Button clicked!', event.target);
+        alert('Hello!');
+    }
+}, 'Click Me')
+```
+
+### Input Events
+```javascript
+createElement('input', {
+    type: 'text',
+    onInput: (event) => {
+        console.log('Input value:', event.target.value);
+    },
+    onBlur: (event) => {
+        console.log('Input lost focus');
+    }
+})
+```
+
+### Double-click Events
+```javascript
+createElement('label', {
+    onDoubleClick: () => {
+        console.log('Double-clicked!');
+    }
+}, 'Double-click to edit')
+```
+
+## 🔧 Rendering
+
+### Basic Rendering
+```javascript
+import { createElement, render } from './Core/virtual-dom.js';
+
+const app = createElement('div', { className: 'app' },
+    createElement('h1', {}, 'My Application'),
+    createElement('p', {}, 'Welcome to the app!')
+);
+
+render(app, document.getElementById('root'));
+```
+
+## 🔍 Integration with State
+
+```javascript
+import { createState } from './Core/state.js';
+import { createElement, render } from './Core/virtual-dom.js';
+
+const count = createState(0);
+
+function renderApp() {
+    const app = createElement('div', {},
+        createElement('span', {}, `Count: ${count.value}`),
+        createElement('button', {
+            onClick: () => count.value++
+        }, '+1')
+    );
+    render(app, document.getElementById('root'));
+}
+
+count.subscribe(renderApp);
+renderApp();
+```
+
+---
+
+**The Virtual DOM module provides the foundation for building dynamic, interactive user interfaces with pure ES6 modules and modern JavaScript patterns.**
 
 #### Form Attributes
 ```javascript
