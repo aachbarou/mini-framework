@@ -1,738 +1,731 @@
-# 🧭 Routing Documentation
+# 🧭 Routing - Pure ES6 Module
 
-> URL synchronization for single-page applications
+> URL synchronization and navigation for single-page applications
 
 ## 📖 Overview
 
-RichFramework's routing system keeps your application state synchronized with the browser URL. When users navigate or bookmark your app, the URL reflects the current state, and changing the URL updates your app accordingly.
+The Routing module provides URL synchronization for single-page applications. It allows you to change views based on the current URL, navigate programmatically, and keep your app's state in sync with the browser's address bar. Users can bookmark pages, use back/forward buttons, and share links.
 
 **Key Benefits:**
-- ✅ Browser back/forward buttons work correctly
-- ✅ URLs can be bookmarked and shared
-- ✅ SEO-friendly navigation
-- ✅ Clean hash-based routing
+- ✅ **URL Synchronization** - App state matches browser URL
+- ✅ **Browser Navigation** - Back/forward buttons work correctly
+- ✅ **Bookmarkable URLs** - Users can bookmark and share links
+- ✅ **Hash-based Routing** - Works without server configuration
+- ✅ **Pure ES6 Module** - Clean imports, no global objects
 
-## 🏗️ How It Works
+## 🚀 Import and Basic Usage
 
 ```javascript
-// URL changes trigger state updates
-window.location.hash = '#/users/123'  // URL becomes: yoursite.com/#/users/123
-// → Your app automatically shows user 123
+import { navigate, onRouteChange, getCurrentRoute } from './Core/router.js';
 
-// State changes update the URL
-RichFramework.navigate('/products');  // App shows products page
-// → URL becomes: yoursite.com/#/products
-```
-
-## 🚀 Basic Usage
-
-### Setting Up Routing
-```javascript
-RichFramework.ready(function() {
-    // Create state for current page
-    const currentPage = RichFramework.createState('home');
+// Listen for route changes
+onRouteChange((newRoute) => {
+    console.log('Route changed to:', newRoute);
     
-    // Listen for route changes
-    RichFramework.onRouteChange((newRoute) => {
-        console.log('Route changed to:', newRoute);
-        
-        if (newRoute === '/' || newRoute === '') {
-            currentPage.value = 'home';
-        } else if (newRoute === '/about') {
-            currentPage.value = 'about';
-        } else if (newRoute === '/contact') {
-            currentPage.value = 'contact';
-        }
-    });
-    
-    // Set initial route
-    const initialRoute = RichFramework.getCurrentRoute();
-    if (initialRoute === '/about') {
-        currentPage.value = 'about';
-    } else if (initialRoute === '/contact') {
-        currentPage.value = 'contact';
-    } else {
-        currentPage.value = 'home';
-    }
-    
-    // Render based on current page
-    function renderApp() {
-        let pageContent;
-        
-        if (currentPage.value === 'home') {
-            pageContent = RichFramework.createElement('div', {},
-                RichFramework.createElement('h1', {}, 'Home Page'),
-                RichFramework.createElement('p', {}, 'Welcome to our website!')
-            );
-        } else if (currentPage.value === 'about') {
-            pageContent = RichFramework.createElement('div', {},
-                RichFramework.createElement('h1', {}, 'About Us'),
-                RichFramework.createElement('p', {}, 'Learn more about our company.')
-            );
-        } else if (currentPage.value === 'contact') {
-            pageContent = RichFramework.createElement('div', {},
-                RichFramework.createElement('h1', {}, 'Contact Us'),
-                RichFramework.createElement('p', {}, 'Get in touch with us.')
-            );
-        }
-        
-        const app = RichFramework.createElement('div', {},
-            // Navigation
-            RichFramework.createElement('nav', {},
-                RichFramework.createElement('a', {
-                    href: '#/',
-                    onClick: (e) => {
-                        e.preventDefault();
-                        RichFramework.navigate('/');
-                    }
-                }, 'Home'),
-                ' | ',
-                RichFramework.createElement('a', {
-                    href: '#/about',
-                    onClick: (e) => {
-                        e.preventDefault();
-                        RichFramework.navigate('/about');
-                    }
-                }, 'About'),
-                ' | ',
-                RichFramework.createElement('a', {
-                    href: '#/contact',
-                    onClick: (e) => {
-                        e.preventDefault();
-                        RichFramework.navigate('/contact');
-                    }
-                }, 'Contact')
-            ),
-            
-            // Page content
-            RichFramework.createElement('main', {}, pageContent)
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    currentPage.subscribe(renderApp);
-    renderApp();
-});
-```
-
-### Navigation Methods
-
-#### Programmatic Navigation
-```javascript
-// Navigate to different routes
-RichFramework.navigate('/');           // Home page
-RichFramework.navigate('/users');      // Users page
-RichFramework.navigate('/users/123');  // Specific user page
-RichFramework.navigate('/settings');   // Settings page
-```
-
-#### Link Navigation
-```javascript
-// Links that use routing
-RichFramework.createElement('a', {
-    href: '#/products',
-    onClick: (event) => {
-        event.preventDefault();           // Prevent page reload
-        RichFramework.navigate('/products'); // Use framework routing
-    }
-}, 'View Products')
-```
-
-### Route Parameters
-
-#### Simple Parameters
-```javascript
-RichFramework.onRouteChange((newRoute) => {
-    const parts = newRoute.split('/');
-    
-    if (parts[1] === 'users' && parts[2]) {
-        const userId = parts[2];
-        console.log('Show user:', userId);
-        showUserPage(userId);
-    } else if (parts[1] === 'products' && parts[2]) {
-        const productId = parts[2];
-        console.log('Show product:', productId);
-        showProductPage(productId);
-    }
-});
-
-// Usage:
-// /users/123 → shows user 123
-// /products/456 → shows product 456
-```
-
-#### Query Parameters
-```javascript
-function parseRoute(route) {
-    const [path, search] = route.split('?');
-    const params = {};
-    
-    if (search) {
-        search.split('&').forEach(param => {
-            const [key, value] = param.split('=');
-            params[decodeURIComponent(key)] = decodeURIComponent(value);
-        });
-    }
-    
-    return { path, params };
-}
-
-RichFramework.onRouteChange((newRoute) => {
-    const { path, params } = parseRoute(newRoute);
-    
-    if (path === '/search') {
-        const query = params.q || '';
-        const category = params.category || 'all';
-        performSearch(query, category);
-    }
-});
-
-// Usage:
-// /search?q=laptop&category=electronics
-```
-
-## 🎯 Practical Examples
-
-### Todo App with Filtering
-```javascript
-RichFramework.ready(function() {
-    const todos = RichFramework.createState([
-        { id: 1, text: 'Learn JavaScript', done: false },
-        { id: 2, text: 'Build a todo app', done: true },
-        { id: 3, text: 'Deploy to production', done: false }
-    ]);
-    
-    const filter = RichFramework.createState('all');
-    
-    // Route handling
-    RichFramework.onRouteChange((newRoute) => {
-        if (newRoute === '/' || newRoute === '') {
-            filter.value = 'all';
-        } else if (newRoute === '/active') {
-            filter.value = 'active';
-        } else if (newRoute === '/completed') {
-            filter.value = 'completed';
-        }
-    });
-    
-    // Initialize route
-    const currentRoute = RichFramework.getCurrentRoute();
-    if (currentRoute === '/active') {
-        filter.value = 'active';
-    } else if (currentRoute === '/completed') {
-        filter.value = 'completed';
-    }
-    
-    function getFilteredTodos() {
-        if (filter.value === 'active') {
-            return todos.value.filter(todo => !todo.done);
-        } else if (filter.value === 'completed') {
-            return todos.value.filter(todo => todo.done);
-        }
-        return todos.value;
-    }
-    
-    function renderApp() {
-        const filteredTodos = getFilteredTodos();
-        
-        const app = RichFramework.createElement('div', {},
-            RichFramework.createElement('h1', {}, 'Todo App'),
-            
-            // Filter navigation
-            RichFramework.createElement('nav', {},
-                RichFramework.createElement('a', {
-                    href: '#/',
-                    className: filter.value === 'all' ? 'active' : '',
-                    onClick: (e) => {
-                        e.preventDefault();
-                        RichFramework.navigate('/');
-                    }
-                }, 'All'),
-                ' | ',
-                RichFramework.createElement('a', {
-                    href: '#/active',
-                    className: filter.value === 'active' ? 'active' : '',
-                    onClick: (e) => {
-                        e.preventDefault();
-                        RichFramework.navigate('/active');
-                    }
-                }, 'Active'),
-                ' | ',
-                RichFramework.createElement('a', {
-                    href: '#/completed',
-                    className: filter.value === 'completed' ? 'active' : '',
-                    onClick: (e) => {
-                        e.preventDefault();
-                        RichFramework.navigate('/completed');
-                    }
-                }, 'Completed')
-            ),
-            
-            // Todo list
-            RichFramework.createElement('ul', {},
-                ...filteredTodos.map(todo =>
-                    RichFramework.createElement('li', {
-                        className: todo.done ? 'completed' : ''
-                    }, todo.text)
-                )
-            ),
-            
-            RichFramework.createElement('p', {}, 
-                `Showing ${filteredTodos.length} of ${todos.value.length} todos`
-            )
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    todos.subscribe(renderApp);
-    filter.subscribe(renderApp);
-    renderApp();
-});
-```
-
-### Multi-Page Application
-```javascript
-RichFramework.ready(function() {
-    const currentPage = RichFramework.createState('home');
-    const pageData = RichFramework.createState(null);
-    
-    // Page components
-    const pages = {
-        home: () => RichFramework.createElement('div', {},
-            RichFramework.createElement('h1', {}, 'Welcome Home'),
-            RichFramework.createElement('p', {}, 'This is the home page.'),
-            RichFramework.createElement('button', {
-                onClick: () => RichFramework.navigate('/users')
-            }, 'View Users')
-        ),
-        
-        users: () => RichFramework.createElement('div', {},
-            RichFramework.createElement('h1', {}, 'Users'),
-            RichFramework.createElement('ul', {},
-                RichFramework.createElement('li', {},
-                    RichFramework.createElement('a', {
-                        href: '#/users/1',
-                        onClick: (e) => {
-                            e.preventDefault();
-                            RichFramework.navigate('/users/1');
-                        }
-                    }, 'John Doe')
-                ),
-                RichFramework.createElement('li', {},
-                    RichFramework.createElement('a', {
-                        href: '#/users/2',
-                        onClick: (e) => {
-                            e.preventDefault();
-                            RichFramework.navigate('/users/2');
-                        }
-                    }, 'Jane Smith')
-                )
-            )
-        ),
-        
-        user: (userId) => {
-            const users = {
-                '1': { name: 'John Doe', email: 'john@example.com' },
-                '2': { name: 'Jane Smith', email: 'jane@example.com' }
-            };
-            
-            const user = users[userId];
-            
-            if (!user) {
-                return RichFramework.createElement('div', {},
-                    RichFramework.createElement('h1', {}, 'User Not Found'),
-                    RichFramework.createElement('p', {}, `User with ID ${userId} does not exist.`)
-                );
-            }
-            
-            return RichFramework.createElement('div', {},
-                RichFramework.createElement('h1', {}, user.name),
-                RichFramework.createElement('p', {}, `Email: ${user.email}`),
-                RichFramework.createElement('button', {
-                    onClick: () => RichFramework.navigate('/users')
-                }, 'Back to Users')
-            );
-        },
-        
-        notFound: () => RichFramework.createElement('div', {},
-            RichFramework.createElement('h1', {}, '404 - Page Not Found'),
-            RichFramework.createElement('p', {}, 'The page you are looking for does not exist.'),
-            RichFramework.createElement('button', {
-                onClick: () => RichFramework.navigate('/')
-            }, 'Go Home')
-        )
-    };
-    
-    // Route handling
-    RichFramework.onRouteChange((newRoute) => {
-        const parts = newRoute.split('/').filter(part => part);
-        
-        if (!parts.length || parts[0] === '') {
-            currentPage.value = 'home';
-            pageData.value = null;
-        } else if (parts[0] === 'users') {
-            if (parts[1]) {
-                currentPage.value = 'user';
-                pageData.value = parts[1]; // User ID
-            } else {
-                currentPage.value = 'users';
-                pageData.value = null;
-            }
-        } else {
-            currentPage.value = 'notFound';
-            pageData.value = null;
-        }
-    });
-    
-    // Initialize route
-    const initialRoute = RichFramework.getCurrentRoute();
-    const initialParts = initialRoute.split('/').filter(part => part);
-    
-    if (!initialParts.length) {
-        currentPage.value = 'home';
-    } else if (initialParts[0] === 'users') {
-        if (initialParts[1]) {
-            currentPage.value = 'user';
-            pageData.value = initialParts[1];
-        } else {
-            currentPage.value = 'users';
-        }
-    } else {
-        currentPage.value = 'notFound';
-    }
-    
-    function renderApp() {
-        let pageContent;
-        
-        if (currentPage.value === 'user') {
-            pageContent = pages.user(pageData.value);
-        } else if (pages[currentPage.value]) {
-            pageContent = pages[currentPage.value]();
-        } else {
-            pageContent = pages.notFound();
-        }
-        
-        const app = RichFramework.createElement('div', {},
-            // Global navigation
-            RichFramework.createElement('nav', { className: 'main-nav' },
-                RichFramework.createElement('a', {
-                    href: '#/',
-                    className: currentPage.value === 'home' ? 'active' : '',
-                    onClick: (e) => {
-                        e.preventDefault();
-                        RichFramework.navigate('/');
-                    }
-                }, 'Home'),
-                ' | ',
-                RichFramework.createElement('a', {
-                    href: '#/users',
-                    className: currentPage.value === 'users' || currentPage.value === 'user' ? 'active' : '',
-                    onClick: (e) => {
-                        e.preventDefault();
-                        RichFramework.navigate('/users');
-                    }
-                }, 'Users')
-            ),
-            
-            // Page content
-            RichFramework.createElement('main', {}, pageContent)
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    currentPage.subscribe(renderApp);
-    pageData.subscribe(renderApp);
-    renderApp();
-});
-```
-
-### Shopping Cart with Route State
-```javascript
-RichFramework.ready(function() {
-    const products = RichFramework.createState([
-        { id: 1, name: 'Laptop', price: 999 },
-        { id: 2, name: 'Mouse', price: 29 },
-        { id: 3, name: 'Keyboard', price: 79 }
-    ]);
-    
-    const cart = RichFramework.createState([]);
-    const currentView = RichFramework.createState('products');
-    const selectedProduct = RichFramework.createState(null);
-    
-    // Route handling
-    RichFramework.onRouteChange((newRoute) => {
-        const parts = newRoute.split('/').filter(part => part);
-        
-        if (!parts.length) {
-            currentView.value = 'products';
-            selectedProduct.value = null;
-        } else if (parts[0] === 'products' && parts[1]) {
-            const productId = parseInt(parts[1]);
-            const product = products.value.find(p => p.id === productId);
-            if (product) {
-                currentView.value = 'product-detail';
-                selectedProduct.value = product;
-            } else {
-                currentView.value = 'not-found';
-            }
-        } else if (parts[0] === 'cart') {
-            currentView.value = 'cart';
-            selectedProduct.value = null;
-        } else {
-            currentView.value = 'not-found';
-        }
-    });
-    
-    function addToCart(product) {
-        const existingItem = cart.value.find(item => item.id === product.id);
-        if (existingItem) {
-            cart.value = cart.value.map(item =>
-                item.id === product.id 
-                    ? { ...item, quantity: item.quantity + 1 }
-                    : item
-            );
-        } else {
-            cart.value = [...cart.value, { ...product, quantity: 1 }];
-        }
-    }
-    
-    function renderApp() {
-        let content;
-        
-        if (currentView.value === 'products') {
-            content = RichFramework.createElement('div', {},
-                RichFramework.createElement('h1', {}, 'Products'),
-                RichFramework.createElement('div', { className: 'product-grid' },
-                    ...products.value.map(product =>
-                        RichFramework.createElement('div', { className: 'product-card' },
-                            RichFramework.createElement('h3', {}, product.name),
-                            RichFramework.createElement('p', {}, `$${product.price}`),
-                            RichFramework.createElement('button', {
-                                onClick: () => RichFramework.navigate(`/products/${product.id}`)
-                            }, 'View Details'),
-                            RichFramework.createElement('button', {
-                                onClick: () => addToCart(product)
-                            }, 'Add to Cart')
-                        )
-                    )
-                )
-            );
-        } else if (currentView.value === 'product-detail' && selectedProduct.value) {
-            const product = selectedProduct.value;
-            content = RichFramework.createElement('div', {},
-                RichFramework.createElement('h1', {}, product.name),
-                RichFramework.createElement('p', { className: 'price' }, `Price: $${product.price}`),
-                RichFramework.createElement('p', {}, 'Product description goes here...'),
-                RichFramework.createElement('button', {
-                    onClick: () => addToCart(product)
-                }, 'Add to Cart'),
-                RichFramework.createElement('button', {
-                    onClick: () => RichFramework.navigate('/')
-                }, 'Back to Products')
-            );
-        } else if (currentView.value === 'cart') {
-            const total = cart.value.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            content = RichFramework.createElement('div', {},
-                RichFramework.createElement('h1', {}, 'Shopping Cart'),
-                cart.value.length === 0
-                    ? RichFramework.createElement('p', {}, 'Your cart is empty')
-                    : RichFramework.createElement('div', {},
-                        RichFramework.createElement('ul', {},
-                            ...cart.value.map(item =>
-                                RichFramework.createElement('li', {},
-                                    `${item.name} - $${item.price} x ${item.quantity} = $${item.price * item.quantity}`
-                                )
-                            )
-                        ),
-                        RichFramework.createElement('p', { className: 'total' }, `Total: $${total}`)
-                    ),
-                RichFramework.createElement('button', {
-                    onClick: () => RichFramework.navigate('/')
-                }, 'Continue Shopping')
-            );
-        } else {
-            content = RichFramework.createElement('div', {},
-                RichFramework.createElement('h1', {}, 'Page Not Found'),
-                RichFramework.createElement('button', {
-                    onClick: () => RichFramework.navigate('/')
-                }, 'Go Home')
-            );
-        }
-        
-        const app = RichFramework.createElement('div', {},
-            // Header with navigation
-            RichFramework.createElement('header', {},
-                RichFramework.createElement('nav', {},
-                    RichFramework.createElement('a', {
-                        href: '#/',
-                        onClick: (e) => {
-                            e.preventDefault();
-                            RichFramework.navigate('/');
-                        }
-                    }, 'Products'),
-                    ' | ',
-                    RichFramework.createElement('a', {
-                        href: '#/cart',
-                        onClick: (e) => {
-                            e.preventDefault();
-                            RichFramework.navigate('/cart');
-                        }
-                    }, `Cart (${cart.value.length})`)
-                )
-            ),
-            
-            // Main content
-            RichFramework.createElement('main', {}, content)
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    // Subscribe to all state changes
-    currentView.subscribe(renderApp);
-    selectedProduct.subscribe(renderApp);
-    cart.subscribe(renderApp);
-    products.subscribe(renderApp);
-    
-    // Initialize
-    const initialRoute = RichFramework.getCurrentRoute();
-    const initialParts = initialRoute.split('/').filter(part => part);
-    
-    if (!initialParts.length) {
-        currentView.value = 'products';
-    } else if (initialParts[0] === 'products' && initialParts[1]) {
-        const productId = parseInt(initialParts[1]);
-        const product = products.value.find(p => p.id === productId);
-        if (product) {
-            currentView.value = 'product-detail';
-            selectedProduct.value = product;
-        }
-    } else if (initialParts[0] === 'cart') {
-        currentView.value = 'cart';
-    }
-    
-    renderApp();
-});
-```
-
-## 💡 Best Practices
-
-### 1. Prevent Default on Links
-```javascript
-// ✅ Always prevent default for SPA links
-RichFramework.createElement('a', {
-    href: '#/about',
-    onClick: (event) => {
-        event.preventDefault();
-        RichFramework.navigate('/about');
-    }
-}, 'About')
-
-// ❌ Don't rely on href alone for routing
-RichFramework.createElement('a', {
-    href: '#/about'  // Will cause page reload
-}, 'About')
-```
-
-### 2. Initialize Routes Properly
-```javascript
-// ✅ Handle initial route on page load
-const initialRoute = RichFramework.getCurrentRoute();
-if (initialRoute === '/users') {
-    currentPage.value = 'users';
-} else {
-    currentPage.value = 'home';
-}
-
-// ✅ Set up route change listener
-RichFramework.onRouteChange((newRoute) => {
-    // Handle route changes
-});
-```
-
-### 3. Use Route Parameters
-```javascript
-// ✅ Parse route parameters
-RichFramework.onRouteChange((newRoute) => {
-    const parts = newRoute.split('/');
-    
-    if (parts[1] === 'users' && parts[2]) {
-        const userId = parts[2];
-        loadUser(userId);
-    }
-});
-```
-
-### 4. Handle 404s
-```javascript
-// ✅ Always have a fallback for unknown routes
-RichFramework.onRouteChange((newRoute) => {
     if (newRoute === '/') {
         showHomePage();
     } else if (newRoute === '/about') {
         showAboutPage();
-    } else {
-        show404Page(); // Fallback for unknown routes
     }
 });
+
+// Navigate programmatically
+navigate('/about');
+
+// Get current route
+const currentRoute = getCurrentRoute(); // e.g., "/about"
 ```
 
-## 🎯 Why Hash-Based Routing?
+## 🎯 Setting Up Routing
 
-### 1. **Simplicity**
-Hash-based routing (`#/page`) is simple to implement and works without server configuration.
-
-### 2. **Client-Side Only**
-Hash changes don't trigger server requests, perfect for single-page applications.
-
-### 3. **Browser Support**
-Works in all browsers, including older ones.
-
-### 4. **Bookmarkable**
-URLs with hashes can be bookmarked and shared.
-
-## 🔧 Implementation Details
-
-Our router uses the browser's `hashchange` event:
-
+### Basic Route Handler
 ```javascript
-class Router {
-    constructor() {
-        this.listeners = [];
+import { onRouteChange } from './Core/router.js';
+import { createElement, render } from './Core/virtual-dom.js';
+
+function renderPage() {
+    let pageContent;
+    const route = getCurrentRoute();
+    
+    switch (route) {
+        case '/':
+        case '':
+            pageContent = createElement('div', {},
+                createElement('h1', {}, 'Home Page'),
+                createElement('p', {}, 'Welcome to our website!')
+            );
+            break;
+            
+        case '/about':
+            pageContent = createElement('div', {},
+                createElement('h1', {}, 'About Us'),
+                createElement('p', {}, 'Learn more about our company.')
+            );
+            break;
+            
+        case '/contact':
+            pageContent = createElement('div', {},
+                createElement('h1', {}, 'Contact'),
+                createElement('p', {}, 'Get in touch with us.')
+            );
+            break;
+            
+        default:
+            pageContent = createElement('div', {},
+                createElement('h1', {}, '404 - Page Not Found'),
+                createElement('p', {}, 'The page you are looking for does not exist.')
+            );
+    }
+    
+    const app = createElement('div', {},
+        createElement('nav', {},
+            createElement('a', { href: '#/' }, 'Home'),
+            createElement('a', { href: '#/about' }, 'About'),
+            createElement('a', { href: '#/contact' }, 'Contact')
+        ),
+        pageContent
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+// Listen for route changes
+onRouteChange(renderPage);
+
+// Initial render
+renderPage();
+```
+
+### Route-based State Management
+```javascript
+import { createState } from './Core/state.js';
+import { onRouteChange, getCurrentRoute } from './Core/router.js';
+
+const currentPage = createState('home');
+const pageData = createState({});
+
+// Update state when route changes
+onRouteChange((newRoute) => {
+    if (newRoute === '/' || newRoute === '') {
+        currentPage.value = 'home';
+        pageData.value = { title: 'Home', content: 'Welcome!' };
+    } else if (newRoute === '/about') {
+        currentPage.value = 'about';
+        pageData.value = { title: 'About', content: 'About our company' };
+    } else if (newRoute === '/contact') {
+        currentPage.value = 'contact';
+        pageData.value = { title: 'Contact', content: 'Contact information' };
+    } else {
+        currentPage.value = '404';
+        pageData.value = { title: 'Not Found', content: 'Page not found' };
+    }
+});
+
+// Initialize with current route
+const initialRoute = getCurrentRoute();
+if (initialRoute === '/about') {
+    currentPage.value = 'about';
+} else if (initialRoute === '/contact') {
+    currentPage.value = 'contact';
+} else {
+    currentPage.value = 'home';
+}
+```
+
+## 🔗 Navigation
+
+### Programmatic Navigation
+```javascript
+import { navigate } from './Core/router.js';
+
+// Navigate to different pages
+function goToAbout() {
+    navigate('/about');
+}
+
+function goToContact() {
+    navigate('/contact');
+}
+
+function goHome() {
+    navigate('/');
+}
+
+// Navigate with user interaction
+createElement('button', {
+    onClick: () => navigate('/about')
+}, 'Go to About');
+
+createElement('button', {
+    onClick: () => navigate('/contact')
+}, 'Go to Contact');
+```
+
+### Link Navigation
+```javascript
+// Using regular links (recommended for SEO and accessibility)
+createElement('nav', {},
+    createElement('a', {
+        href: '#/',
+        onClick: (event) => {
+            event.preventDefault();
+            navigate('/');
+        }
+    }, 'Home'),
+    
+    createElement('a', {
+        href: '#/about',
+        onClick: (event) => {
+            event.preventDefault();
+            navigate('/about');
+        }
+    }, 'About'),
+    
+    createElement('a', {
+        href: '#/contact',
+        onClick: (event) => {
+            event.preventDefault();
+            navigate('/contact');
+        }
+    }, 'Contact')
+);
+
+// Helper function for navigation links
+function createNavLink(href, text) {
+    return createElement('a', {
+        href: `#${href}`,
+        onClick: (event) => {
+            event.preventDefault();
+            navigate(href);
+        }
+    }, text);
+}
+
+// Usage
+createElement('nav', {},
+    createNavLink('/', 'Home'),
+    createNavLink('/about', 'About'),
+    createNavLink('/contact', 'Contact')
+);
+```
+
+## 🏗️ Real-World Examples
+
+### Multi-Page App with Navigation
+```javascript
+import { createState } from './Core/state.js';
+import { createElement, render } from './Core/virtual-dom.js';
+import { navigate, onRouteChange, getCurrentRoute } from './Core/router.js';
+
+const currentRoute = createState('/');
+const isLoading = createState(false);
+
+// Update state when route changes
+onRouteChange((newRoute) => {
+    currentRoute.value = newRoute;
+    
+    // Simulate loading for page transitions
+    isLoading.value = true;
+    setTimeout(() => {
+        isLoading.value = false;
+    }, 300);
+});
+
+// Initialize route
+currentRoute.value = getCurrentRoute() || '/';
+
+function createNavigation() {
+    return createElement('nav', { className: 'navigation' },
+        createElement('div', { className: 'nav-brand' },
+            createElement('h2', {}, 'My App')
+        ),
+        createElement('ul', { className: 'nav-links' },
+            createElement('li', {},
+                createElement('a', {
+                    href: '#/',
+                    className: currentRoute.value === '/' ? 'active' : '',
+                    onClick: (event) => {
+                        event.preventDefault();
+                        navigate('/');
+                    }
+                }, 'Home')
+            ),
+            createElement('li', {},
+                createElement('a', {
+                    href: '#/products',
+                    className: currentRoute.value === '/products' ? 'active' : '',
+                    onClick: (event) => {
+                        event.preventDefault();
+                        navigate('/products');
+                    }
+                }, 'Products')
+            ),
+            createElement('li', {},
+                createElement('a', {
+                    href: '#/about',
+                    className: currentRoute.value === '/about' ? 'active' : '',
+                    onClick: (event) => {
+                        event.preventDefault();
+                        navigate('/about');
+                    }
+                }, 'About')
+            ),
+            createElement('li', {},
+                createElement('a', {
+                    href: '#/contact',
+                    className: currentRoute.value === '/contact' ? 'active' : '',
+                    onClick: (event) => {
+                        event.preventDefault();
+                        navigate('/contact');
+                    }
+                }, 'Contact')
+            )
+        )
+    );
+}
+
+function createPageContent() {
+    if (isLoading.value) {
+        return createElement('div', { className: 'loading' },
+            createElement('p', {}, 'Loading...')
+        );
+    }
+    
+    switch (currentRoute.value) {
+        case '/':
+        case '':
+            return createElement('div', { className: 'page home' },
+                createElement('h1', {}, 'Welcome Home'),
+                createElement('p', {}, 'This is the home page of our application.'),
+                createElement('button', {
+                    onClick: () => navigate('/products')
+                }, 'View Products')
+            );
+            
+        case '/products':
+            return createElement('div', { className: 'page products' },
+                createElement('h1', {}, 'Our Products'),
+                createElement('div', { className: 'product-grid' },
+                    createElement('div', { className: 'product-card' },
+                        createElement('h3', {}, 'Product 1'),
+                        createElement('p', {}, 'Description of product 1')
+                    ),
+                    createElement('div', { className: 'product-card' },
+                        createElement('h3', {}, 'Product 2'),
+                        createElement('p', {}, 'Description of product 2')
+                    )
+                )
+            );
+            
+        case '/about':
+            return createElement('div', { className: 'page about' },
+                createElement('h1', {}, 'About Us'),
+                createElement('p', {}, 'We are a company dedicated to building great software.'),
+                createElement('button', {
+                    onClick: () => navigate('/contact')
+                }, 'Contact Us')
+            );
+            
+        case '/contact':
+            return createElement('div', { className: 'page contact' },
+                createElement('h1', {}, 'Contact Us'),
+                createElement('form', {
+                    onSubmit: (event) => {
+                        event.preventDefault();
+                        alert('Message sent!');
+                        navigate('/');
+                    }
+                },
+                    createElement('input', {
+                        type: 'text',
+                        placeholder: 'Your name',
+                        required: true
+                    }),
+                    createElement('input', {
+                        type: 'email',
+                        placeholder: 'Your email',
+                        required: true
+                    }),
+                    createElement('textarea', {
+                        placeholder: 'Your message',
+                        required: true
+                    }),
+                    createElement('button', { type: 'submit' }, 'Send Message')
+                )
+            );
+            
+        default:
+            return createElement('div', { className: 'page error' },
+                createElement('h1', {}, '404 - Page Not Found'),
+                createElement('p', {}, 'The page you are looking for does not exist.'),
+                createElement('button', {
+                    onClick: () => navigate('/')
+                }, 'Go Home')
+            );
+    }
+}
+
+function renderApp() {
+    const app = createElement('div', { className: 'app' },
+        createNavigation(),
+        createElement('main', { className: 'main-content' },
+            createPageContent()
+        )
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+// Subscribe to state changes
+currentRoute.subscribe(renderApp);
+isLoading.subscribe(renderApp);
+
+// Initial render
+renderApp();
+```
+
+### Todo App with Filtering Routes
+```javascript
+import { createState } from './Core/state.js';
+import { navigate, onRouteChange, getCurrentRoute } from './Core/router.js';
+
+const todos = createState([
+    { id: 1, text: 'Learn routing', done: false },
+    { id: 2, text: 'Build an app', done: true },
+    { id: 3, text: 'Deploy to production', done: false }
+]);
+
+const filter = createState('all'); // 'all', 'active', 'completed'
+
+// Route-based filtering
+onRouteChange((newRoute) => {
+    if (newRoute === '/' || newRoute === '') {
+        filter.value = 'all';
+    } else if (newRoute === '/active') {
+        filter.value = 'active';
+    } else if (newRoute === '/completed') {
+        filter.value = 'completed';
+    }
+});
+
+// Initialize filter from current route
+const currentRoute = getCurrentRoute();
+if (currentRoute === '/active') {
+    filter.value = 'active';
+} else if (currentRoute === '/completed') {
+    filter.value = 'completed';
+} else {
+    filter.value = 'all';
+}
+
+function getFilteredTodos() {
+    switch (filter.value) {
+        case 'active':
+            return todos.value.filter(todo => !todo.done);
+        case 'completed':
+            return todos.value.filter(todo => todo.done);
+        default:
+            return todos.value;
+    }
+}
+
+function createFilterButtons() {
+    return createElement('div', { className: 'filters' },
+        createElement('button', {
+            className: filter.value === 'all' ? 'active' : '',
+            onClick: () => navigate('/')
+        }, 'All'),
         
-        // Listen for hash changes
-        window.addEventListener('hashchange', () => {
-            const newRoute = this.getCurrentRoute();
-            this.listeners.forEach(listener => listener(newRoute));
-        });
+        createElement('button', {
+            className: filter.value === 'active' ? 'active' : '',
+            onClick: () => navigate('/active')
+        }, 'Active'),
+        
+        createElement('button', {
+            className: filter.value === 'completed' ? 'active' : '',
+            onClick: () => navigate('/completed')
+        }, 'Completed')
+    );
+}
+
+function renderTodoApp() {
+    const filteredTodos = getFilteredTodos();
+    
+    const app = createElement('div', { className: 'todo-app' },
+        createElement('h1', {}, 'Todo App with Routing'),
+        
+        createFilterButtons(),
+        
+        createElement('div', { className: 'current-filter' },
+            createElement('p', {}, `Showing: ${filter.value} (${filteredTodos.length} items)`)
+        ),
+        
+        createElement('ul', { className: 'todo-list' },
+            ...filteredTodos.map(todo =>
+                createElement('li', {
+                    key: todo.id,
+                    className: todo.done ? 'completed' : ''
+                },
+                    createElement('span', {}, todo.text),
+                    createElement('span', {}, todo.done ? ' ✓' : ' ○')
+                )
+            )
+        )
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+todos.subscribe(renderTodoApp);
+filter.subscribe(renderTodoApp);
+renderTodoApp();
+```
+
+### Router with Parameters (Advanced)
+```javascript
+// Simple parameter extraction for routes like /user/123
+function parseRoute(route) {
+    const parts = route.split('/').filter(part => part);
+    
+    if (parts.length === 0) {
+        return { page: 'home', params: {} };
     }
     
-    getCurrentRoute() {
-        const hash = window.location.hash;
-        return hash ? hash.substring(1) : '/'; // Remove the # symbol
+    if (parts[0] === 'user' && parts[1]) {
+        return { 
+            page: 'user', 
+            params: { userId: parts[1] } 
+        };
     }
     
-    navigate(path) {
-        window.location.hash = path; // This triggers hashchange event
+    if (parts[0] === 'product' && parts[1]) {
+        return { 
+            page: 'product', 
+            params: { productId: parts[1] } 
+        };
     }
     
-    onRouteChange(callback) {
-        this.listeners.push(callback);
+    return { 
+        page: parts[0], 
+        params: {} 
+    };
+}
+
+const routeInfo = createState({ page: 'home', params: {} });
+
+onRouteChange((newRoute) => {
+    routeInfo.value = parseRoute(newRoute);
+});
+
+// Initialize
+routeInfo.value = parseRoute(getCurrentRoute());
+
+function renderDynamicApp() {
+    const { page, params } = routeInfo.value;
+    
+    let pageContent;
+    
+    switch (page) {
+        case 'home':
+            pageContent = createElement('div', {},
+                createElement('h1', {}, 'Home'),
+                createElement('div', {},
+                    createElement('button', {
+                        onClick: () => navigate('/user/123')
+                    }, 'View User 123'),
+                    createElement('button', {
+                        onClick: () => navigate('/product/456')
+                    }, 'View Product 456')
+                )
+            );
+            break;
+            
+        case 'user':
+            pageContent = createElement('div', {},
+                createElement('h1', {}, `User Profile: ${params.userId}`),
+                createElement('p', {}, `Displaying information for user ${params.userId}`),
+                createElement('button', {
+                    onClick: () => navigate('/')
+                }, 'Back to Home')
+            );
+            break;
+            
+        case 'product':
+            pageContent = createElement('div', {},
+                createElement('h1', {}, `Product: ${params.productId}`),
+                createElement('p', {}, `Product details for ${params.productId}`),
+                createElement('button', {
+                    onClick: () => navigate('/')
+                }, 'Back to Home')
+            );
+            break;
+            
+        default:
+            pageContent = createElement('div', {},
+                createElement('h1', {}, '404 - Not Found')
+            );
+    }
+    
+    const app = createElement('div', {},
+        createElement('nav', {},
+            createElement('a', {
+                href: '#/',
+                onClick: (e) => { e.preventDefault(); navigate('/'); }
+            }, 'Home')
+        ),
+        pageContent
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+routeInfo.subscribe(renderDynamicApp);
+renderDynamicApp();
+```
+
+## 🎯 Routing Best Practices
+
+### 1. **Initialize Route State**
+```javascript
+// Always initialize with current route
+const currentRoute = getCurrentRoute();
+if (currentRoute === '/about') {
+    currentPage.value = 'about';
+} else {
+    currentPage.value = 'home';
+}
+```
+
+### 2. **Use Consistent Route Structure**
+```javascript
+// ✅ Good - Consistent structure
+'/users'           // List all users
+'/users/123'       // View user 123
+'/users/123/edit'  // Edit user 123
+
+// ❌ Avoid - Inconsistent structure
+'/user-list'
+'/show-user-123'
+'/edit_user/123'
+```
+
+### 3. **Handle 404 Cases**
+```javascript
+function renderPage() {
+    const route = getCurrentRoute();
+    
+    switch (route) {
+        case '/':
+            return createHomePage();
+        case '/about':
+            return createAboutPage();
+        default:
+            return create404Page(); // Always have a fallback
     }
 }
 ```
 
-This way:
-- ✅ URL changes trigger route updates
-- ✅ Route updates change the URL
-- ✅ Browser back/forward buttons work
-- ✅ URLs are bookmarkable
+### 4. **Use Descriptive Route Names**
+```javascript
+// ✅ Good - Clear and descriptive
+'/dashboard'
+'/settings/profile'
+'/reports/monthly'
+'/help/getting-started'
 
-## 🎉 You're Ready!
+// ❌ Avoid - Unclear abbreviations
+'/dash'
+'/cfg'
+'/rpt'
+'/hlp'
+```
 
-With RichFramework's routing system, you can build single-page applications with proper URL handling and navigation. Your users can bookmark pages, use the back button, and share links!
+## 🔧 Internal Architecture
 
-**You now have all the tools**: Events, State, Virtual DOM, and Routing - everything you need to build amazing applications with RichFramework! 🚀
+### How Routing Works
+1. **Hash-based** - Uses `window.location.hash` for routing
+2. **Event-driven** - Listens to `hashchange` events
+3. **State synchronization** - Keeps route in sync with URL
+4. **Browser integration** - Back/forward buttons work correctly
+
+### Why Hash-based Routing?
+- **No server config** - Works on any static host
+- **Bookmark friendly** - URLs are shareable
+- **Browser support** - Works in all browsers
+- **No page reloads** - Fast navigation
+
+### Route Format
+```
+https://myapp.com/#/about        → route: '/about'
+https://myapp.com/#/users/123    → route: '/users/123'
+https://myapp.com/#/            → route: '/'
+https://myapp.com/              → route: '/' (empty hash)
+```
+
+## 🚀 Advanced Patterns
+
+### Route Guards
+```javascript
+const isLoggedIn = createState(false);
+
+onRouteChange((newRoute) => {
+    // Protected routes
+    const protectedRoutes = ['/dashboard', '/profile', '/settings'];
+    
+    if (protectedRoutes.includes(newRoute) && !isLoggedIn.value) {
+        // Redirect to login
+        navigate('/login');
+        return;
+    }
+    
+    // Public routes
+    updateCurrentPage(newRoute);
+});
+```
+
+### Route History
+```javascript
+const routeHistory = createState([]);
+
+onRouteChange((newRoute) => {
+    routeHistory.value = [...routeHistory.value, newRoute];
+    
+    // Keep only last 10 routes
+    if (routeHistory.value.length > 10) {
+        routeHistory.value = routeHistory.value.slice(-10);
+    }
+});
+
+function goBack() {
+    const history = routeHistory.value;
+    if (history.length > 1) {
+        const previousRoute = history[history.length - 2];
+        navigate(previousRoute);
+    }
+}
+```
+
+### Nested Routes
+```javascript
+function parseNestedRoute(route) {
+    const parts = route.split('/').filter(p => p);
+    
+    return {
+        section: parts[0] || 'home',
+        subsection: parts[1] || null,
+        id: parts[2] || null
+    };
+}
+
+onRouteChange((newRoute) => {
+    const { section, subsection, id } = parseNestedRoute(newRoute);
+    
+    currentSection.value = section;
+    currentSubsection.value = subsection;
+    currentId.value = id;
+});
+```
+
+---
+
+**Master routing to build sophisticated single-page applications with proper URL handling and navigation!** 🧭

@@ -1,497 +1,470 @@
-# 🔄 State Management Documentation
+# 🔄 State Management - Pure ES6 Module
 
-> Reactive data that automatically updates your UI
+> Reactive data that automatically updates your UI when it changes
 
 ## 📖 Overview
 
-RichFramework's state management system provides reactive data - when your data changes, your UI automatically updates. No manual DOM manipulation needed!
+The State Management module provides reactive data handling. When your state changes, your UI automatically updates without you having to manually manipulate the DOM. This is the core of what makes RichFramework feel "magical" - you just change data, and the UI updates itself.
 
 **Key Benefits:**
-- ✅ Automatic UI updates when data changes
-- ✅ Simple Observer pattern implementation
-- ✅ No complex state mutations
-- ✅ Easy to understand and debug
+- ✅ **Automatic UI Updates** - No manual DOM manipulation needed
+- ✅ **Pure ES6 Module** - Clean imports, no global objects
+- ✅ **Simple API** - Just `createState()`, `.value`, and `.subscribe()`
+- ✅ **Performance** - Only re-renders when data actually changes
+- ✅ **Type-safe** - Works with any JavaScript data type
 
-## 🏗️ How It Works
+## 🚀 Import and Basic Usage
 
 ```javascript
+import { createState } from './Core/state.js';
+
 // Create reactive state
-const counter = RichFramework.createState(0);
+const count = createState(0);
+
+// Read the value
+console.log(count.value); // 0
+
+// Update the value (triggers subscribers)
+count.value = 5;
 
 // Subscribe to changes
-counter.subscribe((newValue) => {
-    console.log('Counter changed to:', newValue);
-    updateUI(); // Automatically called when counter changes
+count.subscribe((newValue) => {
+    console.log('Count changed to:', newValue);
 });
-
-// Change the state - UI updates automatically!
-counter.value = 5; // Triggers all subscribers
 ```
 
-## 🚀 Basic Usage
+## 🎯 Creating State
 
-### Creating State
+### Simple Values
 ```javascript
-// Simple values
-const name = RichFramework.createState('John');
-const age = RichFramework.createState(25);
-const isLoggedIn = RichFramework.createState(false);
+import { createState } from './Core/state.js';
 
-// Arrays
-const todos = RichFramework.createState([]);
-const users = RichFramework.createState([
-    { id: 1, name: 'Alice' },
-    { id: 2, name: 'Bob' }
-]);
+// Numbers
+const counter = createState(0);
+const price = createState(29.99);
+
+// Strings
+const username = createState('');
+const message = createState('Hello World');
+
+// Booleans
+const isLoggedIn = createState(false);
+const isDarkMode = createState(true);
 
 // Objects
-const user = RichFramework.createState({
+const user = createState({
     id: 1,
     name: 'John Doe',
     email: 'john@example.com'
 });
+
+// Arrays
+const todos = createState([]);
+const numbers = createState([1, 2, 3, 4, 5]);
 ```
 
-### Reading State
+### Complex Data Structures
 ```javascript
-const counter = RichFramework.createState(10);
-
-// Get current value
-console.log(counter.value); // 10
-
-// Use in functions
-function getDoubledCounter() {
-    return counter.value * 2;
-}
-```
-
-### Updating State
-```javascript
-const counter = RichFramework.createState(0);
-
-// Direct assignment
-counter.value = 5;
-
-// Based on previous value
-counter.value = counter.value + 1;
-
-// With arrays
-const todos = RichFramework.createState([]);
-todos.value = [...todos.value, { id: 1, text: 'New todo' }];
-
-// With objects
-const user = RichFramework.createState({ name: 'John', age: 25 });
-user.value = { ...user.value, age: 26 };
-```
-
-## 🎯 Reactive UI Updates
-
-### Basic Example
-```javascript
-RichFramework.ready(function() {
-    // Create state
-    const message = RichFramework.createState('Hello World!');
-    
-    // Render function
-    function renderApp() {
-        const app = RichFramework.createElement('div', {},
-            RichFramework.createElement('h1', {}, message.value),
-            RichFramework.createElement('button', {
-                onClick: () => {
-                    message.value = 'Button clicked!'; // UI updates automatically
-                }
-            }, 'Change Message')
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    // Subscribe to state changes
-    message.subscribe(renderApp);
-    
-    // Initial render
-    renderApp();
-});
-```
-
-### Counter Example
-```javascript
-RichFramework.ready(function() {
-    const counter = RichFramework.createState(0);
-    
-    function renderApp() {
-        const app = RichFramework.createElement('div', {},
-            RichFramework.createElement('h2', {}, `Count: ${counter.value}`),
-            RichFramework.createElement('button', {
-                onClick: () => counter.value++
-            }, '+1'),
-            RichFramework.createElement('button', {
-                onClick: () => counter.value--
-            }, '-1'),
-            RichFramework.createElement('button', {
-                onClick: () => counter.value = 0
-            }, 'Reset')
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    counter.subscribe(renderApp);
-    renderApp();
-});
-```
-
-## 📋 Working with Arrays
-
-### Array Helper Methods
-```javascript
-const todos = RichFramework.createState([]);
-
-// Add to end
-todos.push({ id: 1, text: 'Learn JavaScript', done: false });
-
-// Add to beginning
-todos.unshift({ id: 2, text: 'Review code', done: false });
-
-// Remove by index
-todos.remove(0); // Removes first item
-
-// These methods automatically trigger UI updates!
-```
-
-### Manual Array Updates
-```javascript
-const todos = RichFramework.createState([
-    { id: 1, text: 'First todo', done: false }
-]);
-
-// Add new todo
-todos.value = [...todos.value, { id: 2, text: 'Second todo', done: false }];
-
-// Update specific todo
-todos.value = todos.value.map(todo =>
-    todo.id === 1 ? { ...todo, done: true } : todo
-);
-
-// Filter todos
-todos.value = todos.value.filter(todo => !todo.done);
-
-// Sort todos
-todos.value = todos.value.sort((a, b) => a.text.localeCompare(b.text));
-```
-
-### Todo List Example
-```javascript
-RichFramework.ready(function() {
-    const todos = RichFramework.createState([]);
-    let nextId = 1;
-    
-    function addTodo(text) {
-        todos.unshift({
-            id: nextId++,
-            text: text.trim(),
-            done: false
-        });
-    }
-    
-    function toggleTodo(id) {
-        todos.value = todos.value.map(todo =>
-            todo.id === id ? { ...todo, done: !todo.done } : todo
-        );
-    }
-    
-    function deleteTodo(id) {
-        todos.value = todos.value.filter(todo => todo.id !== id);
-    }
-    
-    function renderApp() {
-        const app = RichFramework.createElement('div', {},
-            RichFramework.createElement('h1', {}, 'Todo List'),
-            
-            // Input for new todos
-            RichFramework.createElement('input', {
-                placeholder: 'Add new todo...',
-                onKeydown: (event) => {
-                    if (event.originalEvent.key === 'Enter') {
-                        addTodo(event.target.value);
-                        event.target.value = '';
-                    }
-                }
-            }),
-            
-            // Todo list
-            RichFramework.createElement('ul', {},
-                ...todos.value.map(todo =>
-                    RichFramework.createElement('li', {
-                        'data-id': todo.id,
-                        className: todo.done ? 'completed' : ''
-                    },
-                        RichFramework.createElement('input', {
-                            type: 'checkbox',
-                            checked: todo.done,
-                            onChange: () => toggleTodo(todo.id)
-                        }),
-                        RichFramework.createElement('span', {}, todo.text),
-                        RichFramework.createElement('button', {
-                            onClick: () => deleteTodo(todo.id)
-                        }, 'Delete')
-                    )
-                )
-            )
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    todos.subscribe(renderApp);
-    renderApp();
-});
-```
-
-## 🏢 Working with Objects
-
-### User Profile Example
-```javascript
-const user = RichFramework.createState({
-    name: '',
-    email: '',
-    age: 0,
-    preferences: {
+// Nested objects
+const appState = createState({
+    user: {
+        id: null,
+        profile: {
+            name: '',
+            avatar: null
+        }
+    },
+    settings: {
         theme: 'light',
         notifications: true
+    },
+    data: {
+        todos: [],
+        categories: ['work', 'personal']
     }
 });
 
-function updateProfile(updates) {
-    user.value = { ...user.value, ...updates };
-}
-
-function updatePreferences(prefUpdates) {
-    user.value = {
-        ...user.value,
-        preferences: { ...user.value.preferences, ...prefUpdates }
-    };
-}
-
-// Usage
-updateProfile({ name: 'John Doe', age: 30 });
-updatePreferences({ theme: 'dark' });
+// Arrays of objects
+const todoList = createState([
+    { id: 1, text: 'Learn RichFramework', done: false },
+    { id: 2, text: 'Build an app', done: false },
+    { id: 3, text: 'Deploy to production', done: false }
+]);
 ```
 
-### Form Example
+## 🔄 Reading and Updating State
+
+### Reading Values
 ```javascript
-RichFramework.ready(function() {
-    const formData = RichFramework.createState({
-        username: '',
-        email: '',
-        password: ''
-    });
-    
-    function updateField(field, value) {
-        formData.value = { ...formData.value, [field]: value };
-    }
-    
-    function renderApp() {
-        const app = RichFramework.createElement('div', {},
-            RichFramework.createElement('h2', {}, 'Sign Up'),
-            
-            RichFramework.createElement('form', {
-                onSubmit: (event) => {
-                    event.preventDefault();
-                    console.log('Form submitted:', formData.value);
-                }
-            },
-                RichFramework.createElement('input', {
-                    type: 'text',
-                    placeholder: 'Username',
-                    value: formData.value.username,
-                    onInput: (e) => updateField('username', e.target.value)
-                }),
-                
-                RichFramework.createElement('input', {
-                    type: 'email',
-                    placeholder: 'Email',
-                    value: formData.value.email,
-                    onInput: (e) => updateField('email', e.target.value)
-                }),
-                
-                RichFramework.createElement('input', {
-                    type: 'password',
-                    placeholder: 'Password',
-                    value: formData.value.password,
-                    onInput: (e) => updateField('password', e.target.value)
-                }),
-                
-                RichFramework.createElement('button', {
-                    type: 'submit'
-                }, 'Sign Up')
-            ),
-            
-            // Preview
-            RichFramework.createElement('div', {},
-                RichFramework.createElement('h3', {}, 'Preview:'),
-                RichFramework.createElement('p', {}, `Username: ${formData.value.username}`),
-                RichFramework.createElement('p', {}, `Email: ${formData.value.email}`)
-            )
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    formData.subscribe(renderApp);
-    renderApp();
-});
+const name = createState('John');
+
+// Always use .value to access the current state
+console.log(name.value); // 'John'
+
+// Use in conditions
+if (name.value === 'John') {
+    console.log('Hello John!');
+}
+
+// Use in calculations
+const greeting = `Hello, ${name.value}!`;
 ```
 
-## 🔄 Multiple State Management
-
-### Computed State
+### Updating Values
 ```javascript
-const firstName = RichFramework.createState('John');
-const lastName = RichFramework.createState('Doe');
+const counter = createState(0);
 
-function getFullName() {
-    return `${firstName.value} ${lastName.value}`;
-}
+// Direct assignment
+counter.value = 10;
 
-function renderApp() {
-    const app = RichFramework.createElement('div', {},
-        RichFramework.createElement('input', {
-            placeholder: 'First Name',
-            value: firstName.value,
-            onInput: (e) => firstName.value = e.target.value
-        }),
-        RichFramework.createElement('input', {
-            placeholder: 'Last Name',
-            value: lastName.value,
-            onInput: (e) => lastName.value = e.target.value
-        }),
-        RichFramework.createElement('h2', {}, `Hello, ${getFullName()}!`)
-    );
-    
-    RichFramework.render(app, document.getElementById('app'));
-}
+// Increment/decrement
+counter.value++;
+counter.value--;
 
-// Subscribe to both states
-firstName.subscribe(renderApp);
-lastName.subscribe(renderApp);
+// Mathematical operations
+counter.value = counter.value * 2;
+counter.value += 5;
+
+// String concatenation
+const message = createState('Hello');
+message.value = message.value + ' World';
+message.value += '!';
 ```
 
-### State Coordination
+### Updating Objects (Immutable Pattern)
 ```javascript
-const todos = RichFramework.createState([]);
-const filter = RichFramework.createState('all'); // 'all', 'active', 'completed'
-
-function getFilteredTodos() {
-    if (filter.value === 'active') {
-        return todos.value.filter(todo => !todo.done);
-    } else if (filter.value === 'completed') {
-        return todos.value.filter(todo => todo.done);
-    }
-    return todos.value; // 'all'
-}
-
-function renderApp() {
-    const filteredTodos = getFilteredTodos();
-    
-    const app = RichFramework.createElement('div', {},
-        // Filter buttons
-        RichFramework.createElement('div', {},
-            RichFramework.createElement('button', {
-                className: filter.value === 'all' ? 'active' : '',
-                onClick: () => filter.value = 'all'
-            }, 'All'),
-            RichFramework.createElement('button', {
-                className: filter.value === 'active' ? 'active' : '',
-                onClick: () => filter.value = 'active'
-            }, 'Active'),
-            RichFramework.createElement('button', {
-                className: filter.value === 'completed' ? 'active' : '',
-                onClick: () => filter.value = 'completed'
-            }, 'Completed')
-        ),
-        
-        // Filtered todo list
-        RichFramework.createElement('ul', {},
-            ...filteredTodos.map(todo =>
-                RichFramework.createElement('li', {}, todo.text)
-            )
-        )
-    );
-    
-    RichFramework.render(app, document.getElementById('app'));
-}
-
-// Both states trigger re-render
-todos.subscribe(renderApp);
-filter.subscribe(renderApp);
-```
-
-## 💡 Best Practices
-
-### 1. Keep State Simple
-```javascript
-// ✅ Simple state structure
-const user = RichFramework.createState({
+const user = createState({
     id: 1,
     name: 'John',
     email: 'john@example.com'
 });
 
-// ❌ Avoid deeply nested state
-const app = RichFramework.createState({
-    user: {
-        profile: {
-            personal: {
-                details: {
-                    name: 'John' // Too deep!
-                }
+// ✅ Good - Create new object (immutable)
+user.value = {
+    ...user.value,
+    name: 'Jane'
+};
+
+// ✅ Good - Update nested property
+user.value = {
+    ...user.value,
+    profile: {
+        ...user.value.profile,
+        avatar: 'new-avatar.jpg'
+    }
+};
+
+// ❌ Avoid - Direct mutation (may not trigger updates)
+user.value.name = 'Jane'; // Don't do this
+```
+
+### Updating Arrays (Immutable Pattern)
+```javascript
+const todos = createState([]);
+
+// ✅ Good - Add item (immutable)
+todos.value = [...todos.value, { id: 1, text: 'New todo', done: false }];
+
+// ✅ Good - Remove item
+todos.value = todos.value.filter(todo => todo.id !== 1);
+
+// ✅ Good - Update item
+todos.value = todos.value.map(todo => 
+    todo.id === 1 ? { ...todo, done: true } : todo
+);
+
+// ✅ Good - Replace entire array
+todos.value = [
+    { id: 1, text: 'First todo', done: false },
+    { id: 2, text: 'Second todo', done: true }
+];
+
+// ❌ Avoid - Direct mutation
+todos.value.push(newTodo); // Don't do this
+todos.value[0].done = true; // Don't do this
+```
+
+## 👂 Subscribing to Changes
+
+### Basic Subscription
+```javascript
+const counter = createState(0);
+
+// Subscribe to changes
+counter.subscribe((newValue) => {
+    console.log('Counter is now:', newValue);
+    document.getElementById('display').textContent = newValue;
+});
+
+// Now when you change the value, the subscriber runs
+counter.value = 5; // Logs: "Counter is now: 5"
+counter.value = 10; // Logs: "Counter is now: 10"
+```
+
+### Multiple Subscribers
+```javascript
+const user = createState({ name: 'John', role: 'user' });
+
+// First subscriber - updates UI
+user.subscribe((newUser) => {
+    document.getElementById('username').textContent = newUser.name;
+    document.getElementById('role').textContent = newUser.role;
+});
+
+// Second subscriber - logs changes
+user.subscribe((newUser) => {
+    console.log('User updated:', newUser);
+});
+
+// Third subscriber - saves to localStorage
+user.subscribe((newUser) => {
+    localStorage.setItem('user', JSON.stringify(newUser));
+});
+
+// All three subscribers will run when you update
+user.value = { ...user.value, name: 'Jane' };
+```
+
+### Integration with Virtual DOM
+```javascript
+import { createState } from './Core/state.js';
+import { createElement, render } from './Core/virtual-dom.js';
+
+const todos = createState([]);
+
+function renderApp() {
+    const app = createElement('div', {},
+        createElement('h1', {}, 'Todo List'),
+        createElement('ul', {},
+            ...todos.value.map(todo =>
+                createElement('li', { 
+                    key: todo.id,
+                    className: todo.done ? 'completed' : ''
+                }, todo.text)
+            )
+        )
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+// Subscribe to automatically re-render when todos change
+todos.subscribe(renderApp);
+
+// Initial render
+renderApp();
+
+// Now when you add todos, the UI automatically updates
+todos.value = [...todos.value, { id: 1, text: 'Learn state management', done: false }];
+```
+
+## 🏗️ Real-World Examples
+
+### Counter App
+```javascript
+import { createState } from './Core/state.js';
+import { createElement, render } from './Core/virtual-dom.js';
+
+// State
+const count = createState(0);
+
+// Render function
+function renderCounter() {
+    const app = createElement('div', { className: 'counter' },
+        createElement('h1', {}, `Count: ${count.value}`),
+        createElement('div', { className: 'buttons' },
+            createElement('button', {
+                onClick: () => count.value--
+            }, '-'),
+            createElement('button', {
+                onClick: () => count.value = 0
+            }, 'Reset'),
+            createElement('button', {
+                onClick: () => count.value++
+            }, '+')
+        )
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+// Auto re-render when count changes
+count.subscribe(renderCounter);
+renderCounter();
+```
+
+### User Profile Form
+```javascript
+const user = createState({
+    name: '',
+    email: '',
+    age: '',
+    bio: ''
+});
+
+function renderUserForm() {
+    const app = createElement('form', { className: 'user-form' },
+        createElement('h2', {}, 'User Profile'),
+        
+        createElement('input', {
+            type: 'text',
+            placeholder: 'Name',
+            value: user.value.name,
+            onInput: (e) => {
+                user.value = { ...user.value, name: e.target.value };
             }
-        }
+        }),
+        
+        createElement('input', {
+            type: 'email',
+            placeholder: 'Email',
+            value: user.value.email,
+            onInput: (e) => {
+                user.value = { ...user.value, email: e.target.value };
+            }
+        }),
+        
+        createElement('input', {
+            type: 'number',
+            placeholder: 'Age',
+            value: user.value.age,
+            onInput: (e) => {
+                user.value = { ...user.value, age: e.target.value };
+            }
+        }),
+        
+        createElement('textarea', {
+            placeholder: 'Bio',
+            value: user.value.bio,
+            onInput: (e) => {
+                user.value = { ...user.value, bio: e.target.value };
+            }
+        }),
+        
+        createElement('div', { className: 'preview' },
+            createElement('h3', {}, 'Preview:'),
+            createElement('p', {}, `Name: ${user.value.name}`),
+            createElement('p', {}, `Email: ${user.value.email}`),
+            createElement('p', {}, `Age: ${user.value.age}`),
+            createElement('p', {}, `Bio: ${user.value.bio}`)
+        )
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+user.subscribe(renderUserForm);
+renderUserForm();
+```
+
+### Shopping Cart
+```javascript
+const cart = createState([]);
+const total = createState(0);
+
+// Calculate total whenever cart changes
+cart.subscribe((items) => {
+    const newTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    total.value = newTotal;
+});
+
+function addToCart(product) {
+    const existingItem = cart.value.find(item => item.id === product.id);
+    
+    if (existingItem) {
+        // Update quantity
+        cart.value = cart.value.map(item =>
+            item.id === product.id 
+                ? { ...item, quantity: item.quantity + 1 }
+                : item
+        );
+    } else {
+        // Add new item
+        cart.value = [...cart.value, { ...product, quantity: 1 }];
     }
+}
+
+function removeFromCart(productId) {
+    cart.value = cart.value.filter(item => item.id !== productId);
+}
+
+function renderCart() {
+    const app = createElement('div', { className: 'cart' },
+        createElement('h2', {}, 'Shopping Cart'),
+        
+        createElement('div', { className: 'items' },
+            ...cart.value.map(item =>
+                createElement('div', { key: item.id, className: 'cart-item' },
+                    createElement('span', {}, item.name),
+                    createElement('span', {}, `$${item.price} x ${item.quantity}`),
+                    createElement('button', {
+                        onClick: () => removeFromCart(item.id)
+                    }, 'Remove')
+                )
+            )
+        ),
+        
+        createElement('div', { className: 'total' },
+            createElement('strong', {}, `Total: $${total.value.toFixed(2)}`)
+        ),
+        
+        createElement('button', {
+            className: 'checkout',
+            onClick: () => {
+                alert(`Checkout total: $${total.value.toFixed(2)}`);
+                cart.value = [];
+            }
+        }, 'Checkout')
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+cart.subscribe(renderCart);
+total.subscribe(renderCart);
+renderCart();
+```
+
+## 🎯 Best Practices
+
+### 1. **Use Immutable Updates**
+```javascript
+// ✅ Good - Creates new object/array
+state.value = { ...state.value, newProperty: 'value' };
+state.value = [...state.value, newItem];
+
+// ❌ Avoid - Direct mutation
+state.value.newProperty = 'value';
+state.value.push(newItem);
+```
+
+### 2. **Keep State Simple**
+```javascript
+// ✅ Good - Simple, focused state
+const username = createState('');
+const isLoggedIn = createState(false);
+const todos = createState([]);
+
+// ❌ Avoid - Everything in one giant state
+const appState = createState({
+    ui: { modals: {}, forms: {}, navigation: {} },
+    data: { users: [], todos: [], categories: [] },
+    cache: { api: {}, images: {} }
 });
 ```
 
-### 2. Use Immutable Updates
+### 3. **Use Functions for Complex Updates**
 ```javascript
-// ✅ Immutable updates
-const todos = RichFramework.createState([{ id: 1, text: 'Todo 1' }]);
-todos.value = [...todos.value, { id: 2, text: 'Todo 2' }];
+const todos = createState([]);
 
-// ❌ Avoid mutating state directly
-todos.value.push({ id: 2, text: 'Todo 2' }); // Won't trigger updates!
-```
-
-### 3. One State per Concern
-```javascript
-// ✅ Separate concerns
-const todos = RichFramework.createState([]);
-const filter = RichFramework.createState('all');
-const user = RichFramework.createState(null);
-
-// ❌ Don't mix unrelated data
-const appState = RichFramework.createState({
-    todos: [],
-    filter: 'all',
-    user: null,
-    ui: {
-        loading: false,
-        error: null
-    }
-});
-```
-
-### 4. Use Helper Functions
-```javascript
-const todos = RichFramework.createState([]);
-
-// ✅ Helper functions for common operations
 function addTodo(text) {
-    todos.unshift({
+    const newTodo = {
         id: Date.now(),
         text: text.trim(),
-        done: false
-    });
+        done: false,
+        createdAt: new Date()
+    };
+    todos.value = [...todos.value, newTodo];
 }
 
 function toggleTodo(id) {
@@ -505,58 +478,91 @@ function deleteTodo(id) {
 }
 ```
 
-## 🎯 Why This Approach?
-
-### 1. **Reactive Updates**
-When state changes, all subscribers (usually your render function) are automatically called. No manual DOM manipulation needed.
-
-### 2. **Predictable Data Flow**
-- User action → State change → UI update
-- Clear, linear flow that's easy to debug
-
-### 3. **Simple Observer Pattern**
-Based on the classic Observer pattern - when data changes, observers are notified.
-
-### 4. **Framework Control**
-The framework manages when UI updates happen, ensuring consistent behavior and preventing common bugs.
-
-## 🔧 Implementation Details
-
-Our State class works like this:
-
+### 4. **Subscribe for Side Effects**
 ```javascript
-class State {
-    constructor(initialValue) {
-        this._value = initialValue;
-        this._listeners = []; // Functions to call when state changes
+const user = createState(null);
+
+// Auto-save to localStorage
+user.subscribe((userData) => {
+    if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+    } else {
+        localStorage.removeItem('user');
     }
-    
-    get value() {
-        return this._value;
+});
+
+// Log analytics
+user.subscribe((userData) => {
+    if (userData) {
+        analytics.track('user_logged_in', { userId: userData.id });
     }
-    
-    set value(newValue) {
-        this._value = newValue;
-        this._notifyAll(); // Tell all subscribers about the change
-    }
-    
-    subscribe(callback) {
-        this._listeners.push(callback);
-    }
-    
-    _notifyAll() {
-        this._listeners.forEach(callback => callback(this._value));
-    }
-}
+});
 ```
 
-This way:
-- ✅ State changes are tracked automatically
-- ✅ UI updates happen when needed
-- ✅ Simple, predictable behavior
+## 🔧 Internal Architecture
 
-## 🎉 You're Ready!
+### How State Works
+1. **createState()** creates a State instance with initial value
+2. **State.value getter** returns current value
+3. **State.value setter** updates value and calls all subscribers
+4. **State.subscribe()** adds callback to subscriber list
 
-With this state management system, you can build reactive applications where the UI automatically stays in sync with your data. No more manual DOM manipulation!
+### Why Immutable Updates?
+- **Predictable** - Easy to track what changed
+- **Performance** - Can compare references for changes
+- **Debugging** - Clear history of state changes
+- **Concurrent Safe** - No race conditions
 
-**Next**: Learn about [Virtual DOM](virtual-dom.md) to understand how RichFramework efficiently updates your UI.
+### Integration with Virtual DOM
+- State subscribers trigger re-renders
+- Virtual DOM efficiently updates only changed parts
+- Framework manages the timing of updates
+
+## 🚀 Advanced Patterns
+
+### Computed State
+```javascript
+const firstName = createState('John');
+const lastName = createState('Doe');
+const fullName = createState('');
+
+// Update fullName when either name changes
+firstName.subscribe(() => {
+    fullName.value = `${firstName.value} ${lastName.value}`;
+});
+
+lastName.subscribe(() => {
+    fullName.value = `${firstName.value} ${lastName.value}`;
+});
+```
+
+### State Persistence
+```javascript
+const preferences = createState(
+    JSON.parse(localStorage.getItem('preferences') || '{}')
+);
+
+preferences.subscribe((prefs) => {
+    localStorage.setItem('preferences', JSON.stringify(prefs));
+});
+```
+
+### State Validation
+```javascript
+const email = createState('');
+const emailError = createState('');
+
+email.subscribe((emailValue) => {
+    if (!emailValue) {
+        emailError.value = 'Email is required';
+    } else if (!emailValue.includes('@')) {
+        emailError.value = 'Invalid email format';
+    } else {
+        emailError.value = '';
+    }
+});
+```
+
+---
+
+**State management is the heart of reactive applications. Master it, and you'll build UIs that feel magical to use!** ✨

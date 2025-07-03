@@ -1,661 +1,552 @@
-# 🏗️ Virtual DOM - Pure ES6 Module
+# Virtual DOM Module
 
-> Efficient DOM manipulation through JavaScript objects with pure ES6 imports
+The Virtual DOM module provides efficient DOM manipulation through virtual representation of elements. Instead of directly manipulating the DOM, you create virtual elements that the framework converts to real DOM elements.
 
-## 📖 Overview
+## Overview
 
-The Virtual DOM module creates JavaScript objects that represent your HTML structure. Instead of directly manipulating the DOM (which is slow), you describe what you want using JavaScript, and the framework efficiently creates the real DOM elements.
+The Virtual DOM system in RichFramework:
+- Creates virtual representations of DOM elements
+- Efficiently converts virtual elements to real DOM
+- Handles event binding automatically
+- Supports all HTML attributes and properties
+- Provides a clean API for element creation
 
-**Key Benefits:**
-- ✅ **Pure ES6 Module** - No global objects, clean imports
-- ✅ **Faster than direct DOM** - Efficient element creation
-- ✅ **Declarative** - Describe what you want, not how to build it
-- ✅ **Automatic event handling** - Built-in event delegation
-- ✅ **Modern syntax** - Clean, readable code structure
+## Key Functions
 
-## 🚀 Import and Basic Usage
+### `createElement(tag, attributes, ...children)`
+
+Creates a virtual DOM element that can be rendered to the real DOM.
+
+**Parameters:**
+- `tag` (string): HTML tag name (e.g., 'div', 'button', 'input')
+- `attributes` (object): Element attributes and properties
+- `children` (...any): Child elements or text content
+
+**Returns:** Virtual DOM element object
+
+## Basic Usage
+
+### Creating Simple Elements
 
 ```javascript
-import { createElement, render } from './Core/virtual-dom.js';
+import { createElement, render } from '../Core/virtual-dom.js';
 
-// Simple usage
-const app = createElement('h1', {}, 'Hello World');
-render(app, document.getElementById('root'));
-```
-
-## 🏗️ How It Works
-
-```javascript
-// ❌ Traditional DOM manipulation (slow and complex)
-const div = document.createElement('div');
-div.className = 'container';
-const h1 = document.createElement('h1');
-h1.textContent = 'Hello World';
-div.appendChild(h1);
-document.body.appendChild(div);
-
-// ✅ Virtual DOM approach (fast and simple)
-import { createElement, render } from './Core/virtual-dom.js';
-
-const vdom = createElement('div', { className: 'container' },
-    createElement('h1', {}, 'Hello World')
-);
-render(vdom, document.body);
-```
-
-## 🎯 Creating Elements
-
-### Simple Elements
-```javascript
-import { createElement } from './Core/virtual-dom.js';
-
-// Text element
-createElement('h1', {}, 'Hello World')
+// Simple text element
+const heading = createElement('h1', {}, 'Hello World');
 
 // Element with attributes
-createElement('div', {
-    className: 'container',
-    id: 'main-content'
-}, 'Content here')
+const button = createElement('button', {
+    className: 'btn primary',
+    id: 'submit-btn'
+}, 'Click Me');
 
-// Self-closing elements
-createElement('img', {
-    src: 'image.jpg',
-    alt: 'Description'
-})
-
-createElement('input', {
+// Self-closing element
+const input = createElement('input', {
     type: 'text',
-    placeholder: 'Enter your name'
-})
+    placeholder: 'Enter text here'
+});
 ```
 
-### Elements with Children
+### Adding Attributes
+
 ```javascript
-// Single child
-createElement('div', {},
-    createElement('p', {}, 'Paragraph text')
-)
-
-// Multiple children
-createElement('ul', {},
-    createElement('li', {}, 'Item 1'),
-    createElement('li', {}, 'Item 2'),
-    createElement('li', {}, 'Item 3')
-)
-
-// Mixed content
-createElement('div', {},
-    createElement('h2', {}, 'Title'),
-    'Some text content',
-    createElement('p', {}, 'A paragraph'),
-    createElement('button', {}, 'Click me')
-)
-```
-
-## 🎨 Adding Attributes
-
-### CSS Classes and IDs
-```javascript
+// CSS classes
 createElement('div', {
-    className: 'card highlight',  // CSS classes
-    id: 'user-card'              // Element ID
-})
-```
+    className: 'container fluid'
+});
 
-### Data Attributes
-```javascript
-createElement('li', {
+// IDs and data attributes
+createElement('article', {
+    id: 'main-article',
     'data-id': '123',
-    'data-category': 'electronics',
-    'data-price': '99.99'
-}, 'Product item')
-```
+    'data-category': 'technology'
+});
 
-### Form Attributes
-```javascript
+// Form attributes
 createElement('input', {
     type: 'email',
-    placeholder: 'Enter email',
-    value: 'john@example.com',
     required: true,
-    disabled: false
-})
+    placeholder: 'user@example.com',
+    value: 'john@example.com'
+});
+
+// Style attribute
+createElement('div', {
+    style: 'color: red; font-size: 16px;'
+});
 ```
 
-## 🎪 Event Handling
+### Nested Elements
 
-### Click Events
 ```javascript
+// Container with multiple children
+const app = createElement('div', { className: 'app' },
+    createElement('header', {},
+        createElement('h1', {}, 'My Application'),
+        createElement('nav', {},
+            createElement('a', { href: '#home' }, 'Home'),
+            createElement('a', { href: '#about' }, 'About')
+        )
+    ),
+    createElement('main', {},
+        createElement('p', {}, 'Welcome to my app!'),
+        createElement('button', {}, 'Get Started')
+    )
+);
+```
+
+### Lists and Dynamic Content
+
+```javascript
+// Creating lists
+const items = ['Apple', 'Banana', 'Cherry'];
+
+const list = createElement('ul', { className: 'fruit-list' },
+    ...items.map(item => 
+        createElement('li', { key: item }, item)
+    )
+);
+
+// Dynamic content based on data
+const todos = [
+    { id: 1, text: 'Learn JavaScript', completed: false },
+    { id: 2, text: 'Build an app', completed: true }
+];
+
+const todoList = createElement('div', {},
+    ...todos.map(todo =>
+        createElement('div', {
+            className: todo.completed ? 'todo completed' : 'todo',
+            'data-id': todo.id
+        },
+            createElement('span', {}, todo.text)
+        )
+    )
+);
+```
+
+## Event Handling
+
+### Basic Event Handlers
+
+```javascript
+// Click events
 createElement('button', {
     onClick: (event) => {
-        console.log('Button clicked!', event.target);
-        alert('Hello!');
+        console.log('Button clicked!');
+        console.log('Event:', event);
     }
-}, 'Click Me')
-```
+}, 'Click Me');
 
-### Input Events
-```javascript
+// Input events
 createElement('input', {
-    type: 'text',
     onInput: (event) => {
         console.log('Input value:', event.target.value);
     },
-    onBlur: (event) => {
-        console.log('Input lost focus');
+    onChange: (event) => {
+        console.log('Input changed:', event.target.value);
     }
-})
+});
 ```
 
-### Double-click Events
+### Supported Event Types
+
 ```javascript
-createElement('label', {
-    onDoubleClick: () => {
-        console.log('Double-clicked!');
-    }
-}, 'Double-click to edit')
-```
+// Mouse events
+createElement('div', {
+    onClick: handleClick,
+    onDoubleClick: handleDoubleClick,
+    onMouseOver: handleMouseOver,
+    onMouseOut: handleMouseOut
+});
 
-## 🔧 Rendering
-
-### Basic Rendering
-```javascript
-import { createElement, render } from './Core/virtual-dom.js';
-
-const app = createElement('div', { className: 'app' },
-    createElement('h1', {}, 'My Application'),
-    createElement('p', {}, 'Welcome to the app!')
+// Form events
+createElement('form', {
+    onSubmit: handleSubmit
+},
+    createElement('input', {
+        onFocus: handleFocus,
+        onBlur: handleBlur,
+        onKeyDown: handleKeyDown,
+        onKeyUp: handleKeyUp
+    })
 );
 
-render(app, document.getElementById('root'));
+// Custom events
+createElement('div', {
+    onCustomEvent: handleCustomEvent
+});
 ```
 
-## 🔍 Integration with State
+### Event Handler Patterns
 
 ```javascript
-import { createState } from './Core/state.js';
-import { createElement, render } from './Core/virtual-dom.js';
+// Event handler with state update
+import { createState } from '../Core/state.js';
 
 const count = createState(0);
 
-function renderApp() {
-    const app = createElement('div', {},
-        createElement('span', {}, `Count: ${count.value}`),
-        createElement('button', {
-            onClick: () => count.value++
-        }, '+1')
-    );
-    render(app, document.getElementById('root'));
-}
+const counter = createElement('div', {},
+    createElement('span', {}, `Count: ${count.value}`),
+    createElement('button', {
+        onClick: () => count.value++
+    }, '+1'),
+    createElement('button', {
+        onClick: () => count.value--
+    }, '-1')
+);
 
-count.subscribe(renderApp);
-renderApp();
-```
-
----
-
-**The Virtual DOM module provides the foundation for building dynamic, interactive user interfaces with pure ES6 modules and modern JavaScript patterns.**
-
-#### Form Attributes
-```javascript
-RichFramework.createElement('input', {
-    type: 'email',
-    name: 'email',
-    placeholder: 'Enter your email',
-    required: true,
-    value: 'user@example.com'
-})
-
-RichFramework.createElement('textarea', {
-    name: 'message',
-    rows: '4',
-    cols: '50',
-    placeholder: 'Enter your message...'
-})
-```
-
-#### Special Attributes
-```javascript
-// HTML for attribute (use htmlFor)
-RichFramework.createElement('label', {
-    htmlFor: 'username'
-}, 'Username:')
-
-// Boolean attributes
-RichFramework.createElement('input', {
-    type: 'checkbox',
-    checked: true,
-    disabled: false,
-    autofocus: true
-})
-```
-
-## 🎮 Adding Events
-
-Events are added as props starting with "on":
-
-### Basic Events
-```javascript
-RichFramework.createElement('button', {
-    onClick: (event) => {
-        alert('Button clicked!');
-    }
-}, 'Click Me')
-
-RichFramework.createElement('input', {
-    onInput: (event) => {
-        console.log('User typed:', event.target.value);
-    }
-})
-```
-
-### Event Object
-All event handlers receive a consistent event object:
-
-```javascript
-RichFramework.createElement('button', {
-    onClick: (event) => {
-        console.log('Event type:', event.type);                    // 'click'
-        console.log('Target element:', event.target);              // The button
-        console.log('Current target:', event.currentTarget);       // Also the button
-        console.log('Native event:', event.originalEvent);         // Original browser event
-        
-        // Standard event methods
-        event.preventDefault();     // Prevent default behavior
-        event.stopPropagation();   // Stop event bubbling
-    }
-}, 'Event Example')
-```
-
-### Form Events
-```javascript
-RichFramework.createElement('form', {
+// Event handler with form data
+const form = createElement('form', {
     onSubmit: (event) => {
-        event.preventDefault(); // Prevent page reload
-        
+        event.preventDefault();
         const formData = new FormData(event.target);
-        console.log('Form data:', Object.fromEntries(formData));
+        const name = formData.get('name');
+        console.log('Form submitted with name:', name);
     }
 },
-    RichFramework.createElement('input', {
-        name: 'username',
+    createElement('input', {
+        name: 'name',
         type: 'text',
-        onFocus: (event) => {
-            event.target.style.borderColor = 'blue';
-        },
-        onBlur: (event) => {
-            event.target.style.borderColor = '';
-        }
+        required: true
     }),
-    RichFramework.createElement('button', { type: 'submit' }, 'Submit')
-)
-```
-
-### Keyboard Events
-```javascript
-RichFramework.createElement('input', {
-    onKeydown: (event) => {
-        const key = event.originalEvent.key;
-        
-        if (key === 'Enter') {
-            console.log('Enter pressed!');
-        } else if (key === 'Escape') {
-            event.target.value = '';
-        } else if (event.originalEvent.ctrlKey && key === 's') {
-            event.preventDefault();
-            console.log('Ctrl+S pressed!');
-        }
-    }
-})
-```
-
-## 🔄 Nesting Elements
-
-### Simple Nesting
-```javascript
-const header = RichFramework.createElement('header', {},
-    RichFramework.createElement('nav', {},
-        RichFramework.createElement('ul', {},
-            RichFramework.createElement('li', {},
-                RichFramework.createElement('a', { href: '#home' }, 'Home')
-            ),
-            RichFramework.createElement('li', {},
-                RichFramework.createElement('a', { href: '#about' }, 'About')
-            ),
-            RichFramework.createElement('li', {},
-                RichFramework.createElement('a', { href: '#contact' }, 'Contact')
-            )
-        )
-    )
+    createElement('button', { type: 'submit' }, 'Submit')
 );
 ```
 
-### Dynamic Nesting with Arrays
-```javascript
-const menuItems = ['Home', 'About', 'Services', 'Contact'];
+## Rendering to DOM
 
-const navigation = RichFramework.createElement('nav', {},
-    RichFramework.createElement('ul', {},
-        ...menuItems.map(item =>
-            RichFramework.createElement('li', {},
-                RichFramework.createElement('a', {
-                    href: `#${item.toLowerCase()}`,
-                    onClick: (event) => {
-                        event.preventDefault();
-                        navigateToSection(item.toLowerCase());
-                    }
-                }, item)
-            )
-        )
-    )
+### `render(element, container)`
+
+Renders a virtual DOM element to a real DOM container.
+
+```javascript
+// Render single element
+const app = createElement('div', {}, 'Hello World');
+render(app, document.getElementById('root'));
+
+// Render complex structure
+const todoApp = createElement('div', { className: 'todo-app' },
+    createElement('h1', {}, 'Todo List'),
+    createElement('input', { 
+        type: 'text', 
+        placeholder: 'Add new todo' 
+    }),
+    createElement('ul', { className: 'todo-list' })
+);
+
+render(todoApp, document.getElementById('app'));
+```
+
+## Advanced Patterns
+
+### Conditional Rendering
+
+```javascript
+const isLoggedIn = true;
+const user = { name: 'John Doe' };
+
+const header = createElement('header', {},
+    createElement('h1', {}, 'My App'),
+    isLoggedIn 
+        ? createElement('div', { className: 'user-info' },
+            createElement('span', {}, `Welcome, ${user.name}`),
+            createElement('button', {}, 'Logout')
+          )
+        : createElement('div', { className: 'auth-buttons' },
+            createElement('button', {}, 'Login'),
+            createElement('button', {}, 'Sign Up')
+          )
 );
 ```
 
-### Conditional Nesting
+### Component Pattern
+
 ```javascript
-function createUserCard(user, isLoggedIn) {
-    return RichFramework.createElement('div', { className: 'user-card' },
-        RichFramework.createElement('h3', {}, user.name),
-        RichFramework.createElement('p', {}, user.email),
-        
-        // Conditional elements
-        isLoggedIn && RichFramework.createElement('button', {
-            onClick: () => logout()
-        }, 'Logout'),
-        
-        !isLoggedIn && RichFramework.createElement('button', {
-            onClick: () => showLoginModal()
-        }, 'Login')
+// Reusable component function
+function createButton(text, onClick, className = 'btn') {
+    return createElement('button', {
+        className,
+        onClick
+    }, text);
+}
+
+// Usage
+const saveButton = createButton('Save', () => console.log('Saved!'), 'btn primary');
+const cancelButton = createButton('Cancel', () => console.log('Cancelled!'), 'btn secondary');
+
+const buttonGroup = createElement('div', { className: 'button-group' },
+    saveButton,
+    cancelButton
+);
+```
+
+### Data Binding with State
+
+```javascript
+import { createState } from '../Core/state.js';
+
+const name = createState('John');
+const email = createState('john@example.com');
+
+function createUserForm() {
+    return createElement('form', {},
+        createElement('input', {
+            type: 'text',
+            value: name.value,
+            onInput: (e) => name.value = e.target.value
+        }),
+        createElement('input', {
+            type: 'email',
+            value: email.value,
+            onInput: (e) => email.value = e.target.value
+        }),
+        createElement('p', {}, `Hello ${name.value}, your email is ${email.value}`)
     );
 }
+
+// Re-render when state changes
+name.subscribe(() => {
+    render(createUserForm(), document.getElementById('app'));
+});
+
+email.subscribe(() => {
+    render(createUserForm(), document.getElementById('app'));
+});
 ```
 
-## 🎯 Practical Examples
+## Best Practices
 
-### Card Component
+### 1. Use Semantic HTML
+
 ```javascript
-function createCard(title, content, actions = []) {
-    return RichFramework.createElement('div', { className: 'card' },
-        RichFramework.createElement('div', { className: 'card-header' },
-            RichFramework.createElement('h3', {}, title)
-        ),
-        RichFramework.createElement('div', { className: 'card-body' },
-            RichFramework.createElement('p', {}, content)
-        ),
-        actions.length > 0 && RichFramework.createElement('div', { className: 'card-footer' },
-            ...actions.map(action =>
-                RichFramework.createElement('button', {
-                    onClick: action.handler,
-                    className: action.className || ''
-                }, action.text)
+// Good: Use appropriate HTML elements
+createElement('article', {},
+    createElement('header', {},
+        createElement('h1', {}, 'Article Title')
+    ),
+    createElement('section', {},
+        createElement('p', {}, 'Article content...')
+    )
+);
+
+// Avoid: Generic divs everywhere
+createElement('div', {},
+    createElement('div', {},
+        createElement('div', {}, 'Article Title')
+    )
+);
+```
+
+### 2. Group Related Attributes
+
+```javascript
+// Good: Logical attribute grouping
+createElement('input', {
+    // Identity
+    id: 'email-input',
+    name: 'email',
+    
+    // Type and validation
+    type: 'email',
+    required: true,
+    
+    // User experience
+    placeholder: 'Enter your email',
+    autoComplete: 'email',
+    
+    // Styling
+    className: 'form-input',
+    
+    // Events
+    onInput: handleEmailInput,
+    onBlur: validateEmail
+});
+```
+
+### 3. Extract Complex Elements
+
+```javascript
+// Extract complex structures into functions
+function createNavigation(links) {
+    return createElement('nav', { className: 'main-nav' },
+        createElement('ul', {},
+            ...links.map(link =>
+                createElement('li', {},
+                    createElement('a', {
+                        href: link.url,
+                        className: link.active ? 'active' : ''
+                    }, link.text)
+                )
             )
         )
     );
 }
 
 // Usage
-const userCard = createCard(
-    'John Doe',
-    'Software Developer with 5 years of experience.',
-    [
-        { text: 'Edit', handler: () => editUser(), className: 'btn-primary' },
-        { text: 'Delete', handler: () => deleteUser(), className: 'btn-danger' }
-    ]
-);
-```
-
-### Dynamic List
-```javascript
-function createTodoList(todos) {
-    return RichFramework.createElement('div', { className: 'todo-list' },
-        RichFramework.createElement('h2', {}, `Todo List (${todos.length} items)`),
-        
-        todos.length === 0 
-            ? RichFramework.createElement('p', { className: 'empty' }, 'No todos yet!')
-            : RichFramework.createElement('ul', {},
-                ...todos.map(todo =>
-                    RichFramework.createElement('li', {
-                        'data-id': todo.id,
-                        className: `todo-item ${todo.done ? 'completed' : ''}`
-                    },
-                        RichFramework.createElement('input', {
-                            type: 'checkbox',
-                            checked: todo.done,
-                            onChange: () => toggleTodo(todo.id)
-                        }),
-                        RichFramework.createElement('span', { 
-                            className: 'todo-text',
-                            onDblclick: () => editTodo(todo.id)
-                        }, todo.text),
-                        RichFramework.createElement('button', {
-                            className: 'delete-btn',
-                            onClick: () => deleteTodo(todo.id),
-                            title: 'Delete todo'
-                        }, '×')
-                    )
-                )
-            )
-    );
-}
-```
-
-### Form Component
-```javascript
-function createSignupForm() {
-    return RichFramework.createElement('form', {
-        className: 'signup-form',
-        onSubmit: (event) => {
-            event.preventDefault();
-            handleSignupSubmit(event);
-        }
-    },
-        RichFramework.createElement('h2', {}, 'Sign Up'),
-        
-        RichFramework.createElement('div', { className: 'form-group' },
-            RichFramework.createElement('label', { htmlFor: 'username' }, 'Username:'),
-            RichFramework.createElement('input', {
-                id: 'username',
-                name: 'username',
-                type: 'text',
-                required: true,
-                onInput: (event) => validateUsername(event.target.value)
-            })
-        ),
-        
-        RichFramework.createElement('div', { className: 'form-group' },
-            RichFramework.createElement('label', { htmlFor: 'email' }, 'Email:'),
-            RichFramework.createElement('input', {
-                id: 'email',
-                name: 'email',
-                type: 'email',
-                required: true,
-                onInput: (event) => validateEmail(event.target.value)
-            })
-        ),
-        
-        RichFramework.createElement('div', { className: 'form-group' },
-            RichFramework.createElement('label', { htmlFor: 'password' }, 'Password:'),
-            RichFramework.createElement('input', {
-                id: 'password',
-                name: 'password',
-                type: 'password',
-                required: true,
-                minlength: '6',
-                onInput: (event) => validatePassword(event.target.value)
-            })
-        ),
-        
-        RichFramework.createElement('button', {
-            type: 'submit',
-            className: 'btn-primary'
-        }, 'Sign Up')
-    );
-}
-```
-
-## 📱 Responsive Elements
-
-### Conditional Styling
-```javascript
-function createResponsiveNav(isMobile) {
-    return RichFramework.createElement('nav', {
-        className: `navigation ${isMobile ? 'mobile' : 'desktop'}`
-    },
-        isMobile
-            ? RichFramework.createElement('button', {
-                className: 'menu-toggle',
-                onClick: toggleMobileMenu
-            }, '☰')
-            : RichFramework.createElement('ul', { className: 'nav-links' },
-                RichFramework.createElement('li', {},
-                    RichFramework.createElement('a', { href: '#home' }, 'Home')
-                ),
-                RichFramework.createElement('li', {},
-                    RichFramework.createElement('a', { href: '#about' }, 'About')
-                )
-            )
-    );
-}
-```
-
-## 🔄 Rendering Virtual DOM
-
-### Basic Rendering
-```javascript
-// Create virtual DOM
-const app = RichFramework.createElement('div', { id: 'app' },
-    RichFramework.createElement('h1', {}, 'My App'),
-    RichFramework.createElement('p', {}, 'Welcome to RichFramework!')
-);
-
-// Render to real DOM
-RichFramework.render(app, document.getElementById('root'));
-```
-
-### Re-rendering
-```javascript
-function renderApp() {
-    const app = RichFramework.createElement('div', {},
-        RichFramework.createElement('h1', {}, `Counter: ${counter.value}`),
-        RichFramework.createElement('button', {
-            onClick: () => counter.value++
-        }, 'Increment')
-    );
-    
-    RichFramework.render(app, document.getElementById('app'));
-}
-
-// Re-render when state changes
-counter.subscribe(renderApp);
-```
-
-## 💡 Best Practices
-
-### 1. Keep Elements Simple
-```javascript
-// ✅ Simple, focused elements
-RichFramework.createElement('button', {
-    onClick: handleClick,
-    className: 'primary-button'
-}, 'Click Me')
-
-// ❌ Avoid overly complex single elements
-RichFramework.createElement('div', {
-    className: 'complex-element',
-    onClick: handleClick,
-    onMouseOver: handleHover,
-    onMouseOut: handleLeave,
-    onFocus: handleFocus,
-    onBlur: handleBlur,
-    'data-complex': 'true'
-    // ... too many props
-})
-```
-
-### 2. Use Arrays for Dynamic Content
-```javascript
-// ✅ Use map for dynamic lists
-const items = data.map(item =>
-    RichFramework.createElement('li', { key: item.id }, item.name)
-)
-
-// ✅ Use spread operator to include arrays
-RichFramework.createElement('ul', {}, ...items)
-```
-
-### 3. Extract Components
-```javascript
-// ✅ Create reusable component functions
-function createButton(text, handler, className = '') {
-    return RichFramework.createElement('button', {
-        onClick: handler,
-        className: `btn ${className}`
-    }, text);
-}
-
-// ✅ Use components
-const saveButton = createButton('Save', handleSave, 'btn-primary');
-const cancelButton = createButton('Cancel', handleCancel, 'btn-secondary');
+const nav = createNavigation([
+    { url: '#home', text: 'Home', active: true },
+    { url: '#about', text: 'About', active: false }
+]);
 ```
 
 ### 4. Handle Events Properly
-```javascript
-// ✅ Prevent default when needed
-RichFramework.createElement('form', {
-    onSubmit: (event) => {
-        event.preventDefault(); // Always prevent default for forms
-        handleSubmit(event);
-    }
-})
 
-// ✅ Use event object properties
-RichFramework.createElement('input', {
-    onKeydown: (event) => {
-        if (event.originalEvent.key === 'Enter') {
-            handleEnter();
+```javascript
+// Good: Prevent default when needed
+createElement('form', {
+    onSubmit: (event) => {
+        event.preventDefault();
+        // Handle form submission
+    }
+});
+
+// Good: Use event delegation for dynamic content
+createElement('ul', {
+    onClick: (event) => {
+        if (event.target.matches('.delete-btn')) {
+            // Handle delete
         }
     }
-})
+});
 ```
 
-## 🎯 Why Virtual DOM?
+## Performance Tips
 
-### 1. **Performance**
-Creating JavaScript objects is much faster than creating DOM elements. The framework only creates real DOM elements when needed.
-
-### 2. **Declarative**
-You describe what you want, not how to build it. The framework handles the implementation details.
-
-### 3. **Consistency**
-All elements are created the same way, whether they're simple text or complex nested structures.
-
-### 4. **Event Integration**
-Events are seamlessly integrated into the element creation process - no separate event binding needed.
-
-## 🔧 Implementation Details
-
-Virtual DOM elements are simple JavaScript objects:
+### 1. Minimize Re-renders
 
 ```javascript
-// This virtual element:
-RichFramework.createElement('div', { className: 'container' }, 'Hello')
+// Cache elements that don't change
+const staticHeader = createElement('header', {},
+    createElement('h1', {}, 'My App')
+);
 
-// Creates this object:
-{
-    tag: 'div',
-    props: { className: 'container' },
-    children: ['Hello']
+// Only re-render dynamic parts
+function renderApp(todos) {
+    return createElement('div', {},
+        staticHeader, // Reuse cached element
+        createTodoList(todos) // Only this part changes
+    );
 }
-
-// Which becomes this real DOM:
-<div class="container">Hello</div>
 ```
 
-The framework then converts these objects to real DOM elements when `render()` is called.
+### 2. Use Keys for Lists
 
-## 🎉 You're Ready!
+```javascript
+// Good: Use unique keys for list items
+const todoItems = todos.map(todo =>
+    createElement('li', {
+        key: todo.id,  // Unique key
+        'data-id': todo.id
+    }, todo.text)
+);
+```
 
-With Virtual DOM, you can create complex UI structures declaratively and efficiently. The framework handles all the DOM manipulation for you!
+### 3. Avoid Inline Functions in Attributes
 
-**Next**: Learn about [Routing](routing.md) to add navigation to your single-page applications.
+```javascript
+// Avoid: Creates new function on every render
+createElement('button', {
+    onClick: () => console.log('clicked')
+});
+
+// Better: Use reference to stable function
+const handleClick = () => console.log('clicked');
+createElement('button', {
+    onClick: handleClick
+});
+```
+
+## Integration with Other Modules
+
+### With State Management
+
+```javascript
+import { createState } from '../Core/state.js';
+import { createElement, render } from '../Core/virtual-dom.js';
+
+const todos = createState([]);
+
+function renderTodos() {
+    const app = createElement('div', {},
+        ...todos.value.map(todo =>
+            createElement('div', { key: todo.id }, todo.text)
+        )
+    );
+    render(app, document.getElementById('app'));
+}
+
+// Re-render when state changes
+todos.subscribe(renderTodos);
+```
+
+### With Event System
+
+```javascript
+import { EventBus } from '../Core/events.js';
+import { createElement } from '../Core/virtual-dom.js';
+
+const eventBus = new EventBus();
+
+const button = createElement('button', {
+    onClick: () => eventBus.emit('button-clicked', { timestamp: Date.now() })
+}, 'Click Me');
+
+// Listen for custom events
+eventBus.on('button-clicked', (data) => {
+    console.log('Button clicked at:', data.timestamp);
+});
+```
+
+### With Router
+
+```javascript
+import { getCurrentRoute } from '../Core/router.js';
+import { createElement } from '../Core/virtual-dom.js';
+
+function renderPage() {
+    const route = getCurrentRoute();
+    
+    if (route === '/home') {
+        return createElement('div', {}, 'Home Page');
+    } else if (route === '/about') {
+        return createElement('div', {}, 'About Page');
+    } else {
+        return createElement('div', {}, '404 - Page Not Found');
+    }
+}
+```
+
+## Why Virtual DOM?
+
+### Performance Benefits
+
+1. **Batched Updates**: Multiple changes are batched together
+2. **Efficient Diffing**: Only changed elements are updated
+3. **Reduced Reflows**: Minimizes expensive DOM operations
+
+### Developer Experience
+
+1. **Declarative**: Describe what you want, not how to achieve it
+2. **Composable**: Build complex UIs from simple components
+3. **Predictable**: Same input always produces same output
+
+### Example: Direct DOM vs Virtual DOM
+
+```javascript
+// Direct DOM manipulation (imperative)
+const button = document.createElement('button');
+button.textContent = 'Click Me';
+button.className = 'btn primary';
+button.addEventListener('click', handleClick);
+document.getElementById('app').appendChild(button);
+
+// Virtual DOM (declarative)
+const button = createElement('button', {
+    className: 'btn primary',
+    onClick: handleClick
+}, 'Click Me');
+render(button, document.getElementById('app'));
+```
+
+The Virtual DOM approach is more declarative, easier to test, and provides better performance for complex applications.

@@ -1,227 +1,128 @@
-# 📚 RichFramework Documentation
+# RichFramework Documentation
 
-> A lightweight, easy-to-use JavaScript framework for building interactive web applications
+A pure ES6 mini-framework for building interactive web applications with no external dependencies and zero global objects.
 
-## 🚀 Overview
+## Overview
 
-RichFramework is a custom JavaScript framework that provides:
-- **Virtual DOM** - Efficient DOM manipulation through JavaScript objects
-- **State Management** - Reactive data that automatically updates the UI
-- **Event System** - Clean event handling without direct `addEventListener` calls
-- **Routing** - URL synchronization for single-page applications
+RichFramework is a lightweight, modular framework that provides the essential building blocks for modern web applications:
 
-**Framework Size**: Only 12KB total - smaller than most popular libraries!
+- **State Management**: Reactive state system with automatic UI updates
+- **Virtual DOM**: Efficient DOM manipulation and rendering
+- **Event System**: Powerful event handling with delegation and custom events
+- **Routing**: Client-side navigation with history management
 
-## 🎯 Philosophy
+## Quick Start
 
-RichFramework follows the **"Framework, not Library"** principle:
-- **With a library**: You call the library functions (you're in control)
-- **With a framework**: The framework calls your functions (framework is in control)
-
-When you use RichFramework, you define your components and logic, then the framework manages the rendering, state updates, and event handling for you.
-
-## 📋 Quick Start
-
-### 1. Include the Framework
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My App</title>
-</head>
-<body>
-    <div id="app"></div>
-    
-    <!-- Load framework modules in order -->
-    <script src="src/framework.js"></script>
-    <script src="src/core/events.js"></script>
-    <script src="src/core/virtual-dom.js"></script>
-    <script src="src/core/state.js"></script>
-    <script src="src/core/router.js"></script>
-    <script src="your-app.js"></script>
-</body>
-</html>
-```
-
-### 2. Create Your First App
 ```javascript
-RichFramework.ready(function() {
-    // Create reactive state
-    const counter = RichFramework.createState(0);
-    
-    // Define your app
-    function renderApp() {
-        const app = RichFramework.createElement('div', {},
-            RichFramework.createElement('h1', {}, 'Counter App'),
-            RichFramework.createElement('p', {}, `Count: ${counter.value}`),
-            RichFramework.createElement('button', {
-                onClick: () => counter.value++
-            }, 'Increment')
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    // Subscribe to state changes
-    counter.subscribe(renderApp);
-    
-    // Initial render
-    renderApp();
+// Import the modules you need
+import { createState } from '../Core/state.js';
+import { createElement, render } from '../Core/virtual-dom.js';
+import { EventBus } from '../Core/events.js';
+import { Router } from '../Core/router.js';
+
+// Create reactive state
+const count = createState(0);
+
+// Create virtual DOM elements
+const button = createElement('button', {
+  onclick: () => count.value++,
+  textContent: 'Click me!'
 });
+
+// Render to DOM
+render(button, document.getElementById('app'));
 ```
 
-## 🏗️ Core Concepts
+## Core Modules
 
-### Creating Elements
-Use `RichFramework.createElement()` to create virtual DOM elements:
+### [State Management](./state.md)
+Reactive state system that automatically updates the UI when data changes. Features observable state, computed values, and immutable update patterns.
 
-```javascript
-// Basic element
-RichFramework.createElement('div', {}, 'Hello World')
+### [Virtual DOM](./virtual-dom.md)
+Efficient DOM manipulation through virtual representation. Create elements, handle events, and manage attributes with a simple API.
 
-// Element with attributes
-RichFramework.createElement('input', {
-    type: 'text',
-    placeholder: 'Enter your name',
-    className: 'my-input'
-})
+### [Event System](./events.md)
+Comprehensive event handling with custom events, event delegation, and lifecycle management. Perfect for component communication.
 
-// Element with children
-RichFramework.createElement('div', { className: 'container' },
-    RichFramework.createElement('h1', {}, 'Title'),
-    RichFramework.createElement('p', {}, 'Content')
-)
+### [Routing](./routing.md)
+Client-side routing with history management, parameter extraction, and navigation guards. Build single-page applications with ease.
+
+## Examples
+
+### TodoMVC
+A complete implementation of the TodoMVC specification demonstrating all framework features:
+- State management for todos
+- Virtual DOM for efficient rendering
+- Event handling for user interactions
+- Routing for different views (all, active, completed)
+
+Location: `examples/todomvc/`
+
+### Counter App
+A simple counter demonstrating basic state and virtual DOM usage.
+
+Location: `examples/counter/`
+
+## Features
+
+- **Zero Dependencies**: Pure ES6 with no external libraries
+- **No Globals**: Clean module system with explicit imports
+- **Lightweight**: Minimal footprint with maximum functionality
+- **Modern**: Uses latest JavaScript features and patterns
+- **Flexible**: Modular design - use only what you need
+
+## Philosophy
+
+RichFramework follows these design principles:
+
+1. **Simplicity**: Easy to understand and use
+2. **Modularity**: Import only what you need
+3. **Performance**: Efficient virtual DOM and state management
+4. **Developer Experience**: Clear APIs and helpful error messages
+5. **Standards Compliance**: Follows web standards and best practices
+
+## Browser Support
+
+RichFramework works in all modern browsers that support:
+- ES6 modules
+- Proxy objects
+- Array methods (map, filter, reduce)
+- Modern DOM APIs
+
+## Getting Started
+
+1. Clone or download the framework
+2. Open any example in a local server (ES6 modules require HTTP)
+3. Start building your application!
+
+No build step required - just import and use.
+
+## Architecture
+
+```
+RichFramework/
+├── Core/                 # Framework modules
+│   ├── state.js         # Reactive state management
+│   ├── virtual-dom.js   # Virtual DOM implementation
+│   ├── events.js        # Event system
+│   └── router.js        # Client-side routing
+├── examples/            # Example applications
+│   ├── todomvc/        # TodoMVC implementation
+│   └── counter/        # Simple counter app
+└── docs/               # Documentation
+    ├── README.md       # This file
+    ├── state.md        # State management docs
+    ├── virtual-dom.md  # Virtual DOM docs
+    ├── events.md       # Event system docs
+    └── routing.md      # Routing docs
 ```
 
-### Adding Events
-Use event props (not `addEventListener` directly):
+## Contributing
 
-```javascript
-RichFramework.createElement('button', {
-    onClick: (event) => {
-        console.log('Button clicked!');
-        event.preventDefault(); // Standard event methods available
-    },
-    onMouseOver: (event) => {
-        console.log('Mouse over button');
-    }
-}, 'Click Me')
-```
+RichFramework is designed to be audit-ready and maintainable. When contributing:
 
-### Nesting Elements
-Elements can contain other elements as children:
-
-```javascript
-const nav = RichFramework.createElement('nav', { className: 'navigation' },
-    RichFramework.createElement('ul', {},
-        RichFramework.createElement('li', {},
-            RichFramework.createElement('a', { href: '#home' }, 'Home')
-        ),
-        RichFramework.createElement('li', {},
-            RichFramework.createElement('a', { href: '#about' }, 'About')
-        )
-    )
-);
-```
-
-### Adding Attributes
-Attributes are passed as the second parameter (props object):
-
-```javascript
-RichFramework.createElement('img', {
-    src: 'image.jpg',
-    alt: 'My Image',
-    className: 'responsive-image',
-    'data-id': '123',
-    width: '300',
-    height: '200'
-})
-```
-
-Special attributes:
-- `className` → sets CSS class
-- `htmlFor` → sets `for` attribute (for labels)
-- `onClick`, `onInput`, etc. → event handlers
-- `value`, `checked` → form properties
-
-## 📖 Detailed Guides
-
-- [🎮 Event System](docs/events.md) - Event handling without `addEventListener`
-- [🔄 State Management](docs/state.md) - Reactive data and UI updates
-- [🏗️ Virtual DOM](docs/virtual-dom.md) - Efficient DOM manipulation
-- [🧭 Routing](docs/routing.md) - URL synchronization and navigation
-
-## 🎯 Why RichFramework Works This Way
-
-### 1. **Virtual DOM for Performance**
-Instead of directly manipulating the DOM (which is slow), we create JavaScript objects representing our UI. The framework then efficiently updates only the parts that changed.
-
-### 2. **State Management for Reactivity**
-When your data changes, the UI automatically updates. No manual DOM manipulation needed - just change your state and the framework handles the rest.
-
-### 3. **Event Abstraction for Cleaner Code**
-Instead of calling `addEventListener` everywhere, you use our event props. This keeps your code cleaner and the framework manages the event lifecycle.
-
-### 4. **Framework Control for Consistency**
-The framework controls when rendering happens, how events are handled, and when state updates occur. This prevents common bugs and ensures consistent behavior.
-
-## 🔥 Examples
-
-### Todo App
-```javascript
-RichFramework.ready(function() {
-    const todos = RichFramework.createState([]);
-    let nextId = 1;
-    
-    function addTodo(text) {
-        todos.unshift({ id: nextId++, text, done: false });
-    }
-    
-    function toggleTodo(id) {
-        const newTodos = todos.value.map(todo =>
-            todo.id === id ? { ...todo, done: !todo.done } : todo
-        );
-        todos.value = newTodos;
-    }
-    
-    function renderApp() {
-        const app = RichFramework.createElement('div', {},
-            RichFramework.createElement('input', {
-                placeholder: 'Add todo...',
-                onKeydown: (e) => {
-                    if (e.originalEvent.key === 'Enter') {
-                        addTodo(e.target.value);
-                        e.target.value = '';
-                    }
-                }
-            }),
-            RichFramework.createElement('ul', {},
-                ...todos.value.map(todo =>
-                    RichFramework.createElement('li', {
-                        'data-id': todo.id,
-                        className: todo.done ? 'completed' : ''
-                    },
-                        RichFramework.createElement('input', {
-                            type: 'checkbox',
-                            checked: todo.done,
-                            onChange: () => toggleTodo(todo.id)
-                        }),
-                        todo.text
-                    )
-                )
-            )
-        );
-        
-        RichFramework.render(app, document.getElementById('app'));
-    }
-    
-    todos.subscribe(renderApp);
-    renderApp();
-});
-```
-
-## 🎉 You're Ready!
-
-With these basics, you can start building applications with RichFramework. Check out the detailed guides for each module to learn more advanced features.
-
-**Happy coding!** 🚀
+1. Follow ES6 module patterns
+2. Keep functions pure where possible
+3. Add JSDoc comments for public APIs
+4. Update documentation for new features
+5. Ensure examples work correctly

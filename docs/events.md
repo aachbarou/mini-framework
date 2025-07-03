@@ -1,348 +1,670 @@
-# 🎮 Event System Documentation
+# 🎮 Event System - Pure ES6 Module
 
 > Clean event handling without direct `addEventListener` calls
 
 ## 📖 Overview
 
-RichFramework's event system provides a clean abstraction over browser events. Instead of calling `addEventListener` directly, you use our event methods which internally manage all the native event handling.
+The Event System module provides a clean way to handle user interactions like clicks, input changes, keyboard presses, and more. Instead of manually calling `addEventListener`, you use props like `onClick`, `onInput`, etc. The framework automatically handles event binding, delegation, and cleanup.
 
 **Key Benefits:**
-- ✅ No direct `addEventListener` calls needed
-- ✅ Automatic event cleanup
-- ✅ Consistent API across all event types
-- ✅ Memory leak prevention
+- ✅ **Clean Syntax** - Use `onClick` instead of `addEventListener('click')`
+- ✅ **Automatic Binding** - Framework handles event attachment
+- ✅ **Event Delegation** - Efficient event handling for dynamic content
+- ✅ **Proper Cleanup** - No memory leaks or orphaned listeners
+- ✅ **All DOM Events** - Support for every browser event
 
-## 🏗️ How It Works
-
-```javascript
-// ❌ Traditional way (what we avoid)
-button.addEventListener('click', handleClick);
-
-// ✅ RichFramework way (what users do)
-RichFramework.events.on('click', handleClick, button);
-```
-
-Our EventManager class internally uses `addEventListener`, but framework users never call it directly.
-
-## 🚀 Basic Usage
-
-### Adding Event Listeners
+## 🚀 Import and Basic Usage
 
 ```javascript
-// Basic event on specific element
-const button = document.querySelector('#my-button');
-RichFramework.events.on('click', (event) => {
-    console.log('Button clicked!');
-}, button);
+import { createElement } from './Core/virtual-dom.js';
 
-// Global event (document-level)
-RichFramework.events.global('keydown', (event) => {
-    if (event.originalEvent.key === 'Escape') {
-        console.log('Escape pressed!');
-    }
-});
-```
-
-### Event Types Supported
-
-All standard browser events are supported:
-- **Mouse**: `click`, `dblclick`, `mousedown`, `mouseup`, `mouseover`, `mouseout`
-- **Keyboard**: `keydown`, `keyup`, `keypress`
-- **Form**: `input`, `change`, `submit`, `focus`, `blur`
-- **Window**: `scroll`, `beforeunload`, `load`
-
-### Event Object
-
-All event handlers receive a consistent event object:
-
-```javascript
-RichFramework.events.on('click', (event) => {
-    // Standard properties
-    console.log(event.type);          // 'click'
-    console.log(event.target);        // Element that triggered the event
-    console.log(event.currentTarget); // Element the listener was attached to
-    
-    // Access native event
-    console.log(event.originalEvent);  // Native browser event
-    
-    // Standard methods
-    event.preventDefault();     // Prevent default behavior
-    event.stopPropagation();   // Stop event bubbling
-});
-```
-
-## 🎯 Using Events in Virtual DOM
-
-The most common way to use events is through Virtual DOM element props:
-
-### Button Events
-```javascript
-const button = RichFramework.createElement('button', {
+// Event handlers are just props!
+const button = createElement('button', {
     onClick: (event) => {
-        alert('Button clicked!');
-    },
-    onMouseOver: (event) => {
-        event.target.style.backgroundColor = 'lightblue';
-    },
-    onMouseOut: (event) => {
-        event.target.style.backgroundColor = '';
+        console.log('Button clicked!', event);
     }
-}, 'Hover and Click Me');
+}, 'Click Me');
+```
+
+## 🎯 Creating Events
+
+### Click Events
+```javascript
+import { createElement } from './Core/virtual-dom.js';
+
+// Simple click handler
+createElement('button', {
+    onClick: () => {
+        alert('Hello World!');
+    }
+}, 'Say Hello');
+
+// Click handler with event object
+createElement('button', {
+    onClick: (event) => {
+        console.log('Button clicked:', event.target);
+        event.preventDefault(); // Prevent default behavior
+    }
+}, 'Log Click');
+
+// Click handler with data
+createElement('button', {
+    onClick: () => handleItemClick(item.id)
+}, 'Delete Item');
+
+function handleItemClick(itemId) {
+    console.log('Clicked item:', itemId);
+    // Delete item logic here
+}
+```
+
+### Input Events
+```javascript
+// Text input changes
+createElement('input', {
+    type: 'text',
+    placeholder: 'Enter your name',
+    onInput: (event) => {
+        console.log('Input value:', event.target.value);
+        // Update state or validate input
+    }
+});
+
+// Input change (when focus is lost)
+createElement('input', {
+    type: 'text',
+    onChange: (event) => {
+        console.log('Input changed:', event.target.value);
+        // Final value when user finishes typing
+    }
+});
+
+// Multiple input events
+createElement('input', {
+    type: 'email',
+    onInput: (event) => {
+        // Real-time validation
+        validateEmail(event.target.value);
+    },
+    onFocus: (event) => {
+        console.log('Input focused');
+    },
+    onBlur: (event) => {
+        console.log('Input lost focus');
+        // Final validation
+    }
+});
+```
+
+### Keyboard Events
+```javascript
+// Key press detection
+createElement('input', {
+    type: 'text',
+    onKeyDown: (event) => {
+        if (event.key === 'Enter') {
+            console.log('Enter pressed!');
+            submitForm();
+        }
+        if (event.key === 'Escape') {
+            console.log('Escape pressed!');
+            cancelAction();
+        }
+    }
+});
+
+// Key combinations
+createElement('input', {
+    onKeyDown: (event) => {
+        if (event.ctrlKey && event.key === 's') {
+            event.preventDefault();
+            console.log('Ctrl+S pressed - Save!');
+            saveDocument();
+        }
+        if (event.shiftKey && event.key === 'Enter') {
+            console.log('Shift+Enter - New line');
+        }
+    }
+});
+
+// Keyup events
+createElement('input', {
+    onKeyUp: (event) => {
+        console.log('Key released:', event.key);
+    }
+});
+```
+
+### Mouse Events
+```javascript
+// Mouse interactions
+createElement('div', {
+    className: 'interactive-box',
+    onMouseOver: () => {
+        console.log('Mouse entered');
+    },
+    onMouseOut: () => {
+        console.log('Mouse left');
+    },
+    onMouseDown: () => {
+        console.log('Mouse button pressed');
+    },
+    onMouseUp: () => {
+        console.log('Mouse button released');
+    }
+}, 'Hover over me');
+
+// Double-click events
+createElement('div', {
+    onDoubleClick: () => {
+        console.log('Double-clicked!');
+        editItem();
+    }
+}, 'Double-click to edit');
+
+// Context menu (right-click)
+createElement('div', {
+    onContextMenu: (event) => {
+        event.preventDefault();
+        console.log('Right-clicked!');
+        showContextMenu(event.clientX, event.clientY);
+    }
+}, 'Right-click me');
 ```
 
 ### Form Events
 ```javascript
-const input = RichFramework.createElement('input', {
-    type: 'text',
-    placeholder: 'Type something...',
-    onInput: (event) => {
-        console.log('User typed:', event.target.value);
-    },
-    onFocus: (event) => {
-        event.target.style.borderColor = 'blue';
-    },
-    onBlur: (event) => {
-        event.target.style.borderColor = '';
-    },
-    onKeydown: (event) => {
-        if (event.originalEvent.key === 'Enter') {
-            console.log('Enter pressed!');
-        }
-    }
-});
-```
-
-### Advanced Form Handling
-```javascript
-const form = RichFramework.createElement('form', {
+// Form submission
+createElement('form', {
     onSubmit: (event) => {
         event.preventDefault(); // Prevent page reload
+        console.log('Form submitted');
         
         const formData = new FormData(event.target);
         const data = Object.fromEntries(formData);
-        console.log('Form submitted:', data);
+        console.log('Form data:', data);
+        
+        submitFormData(data);
     }
 },
-    RichFramework.createElement('input', {
-        name: 'username',
-        placeholder: 'Username',
-        required: true
-    }),
-    RichFramework.createElement('input', {
-        name: 'email',
-        type: 'email',
-        placeholder: 'Email',
-        required: true
-    }),
-    RichFramework.createElement('button', {
-        type: 'submit'
-    }, 'Submit')
+    createElement('input', { name: 'username', type: 'text' }),
+    createElement('input', { name: 'password', type: 'password' }),
+    createElement('button', { type: 'submit' }, 'Login')
+);
+
+// Checkbox change
+createElement('input', {
+    type: 'checkbox',
+    onChange: (event) => {
+        console.log('Checkbox checked:', event.target.checked);
+        updateSettings(event.target.checked);
+    }
+});
+
+// Select dropdown change
+createElement('select', {
+    onChange: (event) => {
+        console.log('Selected:', event.target.value);
+        filterItems(event.target.value);
+    }
+},
+    createElement('option', { value: 'all' }, 'All Items'),
+    createElement('option', { value: 'active' }, 'Active'),
+    createElement('option', { value: 'completed' }, 'Completed')
 );
 ```
 
-## 🔄 Dynamic Event Handling
+## 🏗️ Real-World Examples
 
-### Event Delegation
-Events automatically work with dynamically created elements:
-
+### Interactive Button with State
 ```javascript
-// Set up event once
-RichFramework.events.global('click', (event) => {
-    if (event.target.classList.contains('delete-btn')) {
-        const todoId = event.target.getAttribute('data-todo-id');
-        deleteTodo(todoId);
-    }
+import { createState } from './Core/state.js';
+import { createElement, render } from './Core/virtual-dom.js';
+
+const isLoading = createState(false);
+const message = createState('');
+
+function handleAsyncAction() {
+    isLoading.value = true;
+    message.value = 'Loading...';
+    
+    // Simulate API call
+    setTimeout(() => {
+        isLoading.value = false;
+        message.value = 'Action completed!';
+    }, 2000);
+}
+
+function renderApp() {
+    const app = createElement('div', {},
+        createElement('button', {
+            onClick: handleAsyncAction,
+            disabled: isLoading.value,
+            className: isLoading.value ? 'loading' : ''
+        }, isLoading.value ? 'Loading...' : 'Click Me'),
+        
+        createElement('p', {}, message.value)
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+isLoading.subscribe(renderApp);
+message.subscribe(renderApp);
+renderApp();
+```
+
+### Form with Validation
+```javascript
+const formData = createState({
+    email: '',
+    password: '',
+    confirmPassword: ''
 });
 
-// Later, dynamically create elements with delete buttons
-function createTodoItem(todo) {
-    return RichFramework.createElement('li', {},
-        RichFramework.createElement('span', {}, todo.text),
-        RichFramework.createElement('button', {
-            className: 'delete-btn',
-            'data-todo-id': todo.id
-        }, 'Delete')
+const errors = createState({
+    email: '',
+    password: '',
+    confirmPassword: ''
+});
+
+function validateEmail(email) {
+    if (!email) return 'Email is required';
+    if (!email.includes('@')) return 'Invalid email format';
+    return '';
+}
+
+function validatePassword(password) {
+    if (!password) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    return '';
+}
+
+function validateConfirmPassword(password, confirmPassword) {
+    if (!confirmPassword) return 'Please confirm your password';
+    if (password !== confirmPassword) return 'Passwords do not match';
+    return '';
+}
+
+function renderForm() {
+    const app = createElement('form', {
+        onSubmit: (event) => {
+            event.preventDefault();
+            
+            // Validate all fields
+            const emailError = validateEmail(formData.value.email);
+            const passwordError = validatePassword(formData.value.password);
+            const confirmError = validateConfirmPassword(
+                formData.value.password, 
+                formData.value.confirmPassword
+            );
+            
+            errors.value = {
+                email: emailError,
+                password: passwordError,
+                confirmPassword: confirmError
+            };
+            
+            // Submit if no errors
+            if (!emailError && !passwordError && !confirmError) {
+                console.log('Form is valid!', formData.value);
+                alert('Registration successful!');
+            }
+        }
+    },
+        createElement('div', { className: 'field' },
+            createElement('label', {}, 'Email:'),
+            createElement('input', {
+                type: 'email',
+                value: formData.value.email,
+                onInput: (event) => {
+                    formData.value = {
+                        ...formData.value,
+                        email: event.target.value
+                    };
+                    
+                    // Real-time validation
+                    errors.value = {
+                        ...errors.value,
+                        email: validateEmail(event.target.value)
+                    };
+                }
+            }),
+            errors.value.email ? 
+                createElement('span', { className: 'error' }, errors.value.email) : 
+                null
+        ),
+        
+        createElement('div', { className: 'field' },
+            createElement('label', {}, 'Password:'),
+            createElement('input', {
+                type: 'password',
+                value: formData.value.password,
+                onInput: (event) => {
+                    formData.value = {
+                        ...formData.value,
+                        password: event.target.value
+                    };
+                    
+                    errors.value = {
+                        ...errors.value,
+                        password: validatePassword(event.target.value)
+                    };
+                }
+            }),
+            errors.value.password ? 
+                createElement('span', { className: 'error' }, errors.value.password) : 
+                null
+        ),
+        
+        createElement('div', { className: 'field' },
+            createElement('label', {}, 'Confirm Password:'),
+            createElement('input', {
+                type: 'password',
+                value: formData.value.confirmPassword,
+                onInput: (event) => {
+                    formData.value = {
+                        ...formData.value,
+                        confirmPassword: event.target.value
+                    };
+                    
+                    errors.value = {
+                        ...errors.value,
+                        confirmPassword: validateConfirmPassword(
+                            formData.value.password,
+                            event.target.value
+                        )
+                    };
+                }
+            }),
+            errors.value.confirmPassword ? 
+                createElement('span', { className: 'error' }, errors.value.confirmPassword) : 
+                null
+        ),
+        
+        createElement('button', { type: 'submit' }, 'Register')
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+formData.subscribe(renderForm);
+errors.subscribe(renderForm);
+renderForm();
+```
+
+### Dynamic List with Event Delegation
+```javascript
+const items = createState([
+    { id: 1, name: 'Item 1', selected: false },
+    { id: 2, name: 'Item 2', selected: false },
+    { id: 3, name: 'Item 3', selected: false }
+]);
+
+function toggleItem(id) {
+    items.value = items.value.map(item =>
+        item.id === id ? { ...item, selected: !item.selected } : item
     );
 }
-```
 
-### Conditional Events
-```javascript
-function createButton(isEnabled) {
-    const props = {
-        className: isEnabled ? 'enabled' : 'disabled'
-    };
-    
-    // Only add click handler if enabled
-    if (isEnabled) {
-        props.onClick = (event) => {
-            console.log('Button is enabled and was clicked!');
-        };
-    }
-    
-    return RichFramework.createElement('button', props, 'Click Me');
-}
-```
-
-## 🛠️ Advanced Features
-
-### Removing Events
-```javascript
-// Define handler function
-function myHandler(event) {
-    console.log('Event fired!');
+function deleteItem(id) {
+    items.value = items.value.filter(item => item.id !== id);
 }
 
-// Add event
-RichFramework.events.on('click', myHandler, button);
+function addItem() {
+    const newId = Math.max(...items.value.map(i => i.id)) + 1;
+    items.value = [...items.value, {
+        id: newId,
+        name: `Item ${newId}`,
+        selected: false
+    }];
+}
 
-// Remove specific event
-RichFramework.events.off('click', myHandler);
+function renderList() {
+    const app = createElement('div', {},
+        createElement('button', {
+            onClick: addItem
+        }, 'Add Item'),
+        
+        createElement('ul', { className: 'item-list' },
+            ...items.value.map(item =>
+                createElement('li', {
+                    key: item.id,
+                    className: item.selected ? 'selected' : ''
+                },
+                    createElement('span', {
+                        onClick: () => toggleItem(item.id),
+                        className: 'item-name'
+                    }, item.name),
+                    
+                    createElement('button', {
+                        onClick: () => deleteItem(item.id),
+                        className: 'delete-btn'
+                    }, 'Delete')
+                )
+            )
+        ),
+        
+        createElement('p', {}, 
+            `Selected: ${items.value.filter(i => i.selected).length} of ${items.value.length}`
+        )
+    );
+    
+    render(app, document.getElementById('app'));
+}
+
+items.subscribe(renderList);
+renderList();
 ```
 
-### Global Keyboard Shortcuts
+### Keyboard Navigation
 ```javascript
-// Handle global keyboard shortcuts
-RichFramework.events.global('keydown', (event) => {
-    const e = event.originalEvent;
+const currentIndex = createState(0);
+const menuItems = createState([
+    'Home',
+    'About',
+    'Services',
+    'Contact'
+]);
+
+function renderMenu() {
+    const app = createElement('div', {
+        className: 'menu-container',
+        tabIndex: 0, // Make focusable
+        onKeyDown: (event) => {
+            switch (event.key) {
+                case 'ArrowDown':
+                    event.preventDefault();
+                    currentIndex.value = Math.min(
+                        currentIndex.value + 1,
+                        menuItems.value.length - 1
+                    );
+                    break;
+                    
+                case 'ArrowUp':
+                    event.preventDefault();
+                    currentIndex.value = Math.max(currentIndex.value - 1, 0);
+                    break;
+                    
+                case 'Enter':
+                    event.preventDefault();
+                    console.log('Selected:', menuItems.value[currentIndex.value]);
+                    alert(`You selected: ${menuItems.value[currentIndex.value]}`);
+                    break;
+                    
+                case 'Escape':
+                    currentIndex.value = 0;
+                    break;
+            }
+        }
+    },
+        createElement('h2', {}, 'Use arrow keys to navigate, Enter to select'),
+        
+        createElement('ul', { className: 'menu' },
+            ...menuItems.value.map((item, index) =>
+                createElement('li', {
+                    key: index,
+                    className: index === currentIndex.value ? 'active' : '',
+                    onClick: () => {
+                        currentIndex.value = index;
+                        console.log('Clicked:', item);
+                    }
+                }, item)
+            )
+        )
+    );
     
-    // Ctrl+S to save
-    if (e.ctrlKey && e.key === 's') {
+    render(app, document.getElementById('app'));
+    
+    // Auto-focus for keyboard navigation
+    setTimeout(() => {
+        document.querySelector('.menu-container').focus();
+    }, 100);
+}
+
+currentIndex.subscribe(renderMenu);
+renderMenu();
+```
+
+## 🎯 Event System Features
+
+### Event Object Properties
+```javascript
+createElement('button', {
+    onClick: (event) => {
+        console.log('Event type:', event.type); // 'click'
+        console.log('Target element:', event.target);
+        console.log('Current target:', event.currentTarget);
+        console.log('Mouse position:', event.clientX, event.clientY);
+        console.log('Keyboard modifiers:', {
+            ctrl: event.ctrlKey,
+            shift: event.shiftKey,
+            alt: event.altKey
+        });
+        
+        // Prevent default browser behavior
         event.preventDefault();
-        saveDocument();
+        
+        // Stop event from bubbling up
+        event.stopPropagation();
     }
-    
-    // Escape to close modal
-    if (e.key === 'Escape') {
-        closeModal();
-    }
-    
-    // Arrow keys for navigation
-    if (e.key === 'ArrowLeft') {
-        navigateLeft();
-    }
-});
+}, 'Analyze Event');
 ```
 
-### Custom Events
+### All Supported Events
 ```javascript
-// Emit custom events
-RichFramework.events.emit('user-login', { userId: 123, username: 'john' });
+// Mouse Events
+onClick, onDoubleClick, onMouseDown, onMouseUp, onMouseOver, onMouseOut,
+onMouseMove, onMouseEnter, onMouseLeave, onContextMenu
 
-// Listen for custom events
-RichFramework.events.on('user-login', (data) => {
-    console.log('User logged in:', data.username);
-});
+// Keyboard Events  
+onKeyDown, onKeyUp, onKeyPress
+
+// Form Events
+onSubmit, onChange, onInput, onFocus, onBlur, onSelect, onReset
+
+// Touch Events (mobile)
+onTouchStart, onTouchMove, onTouchEnd, onTouchCancel
+
+// Drag Events
+onDrag, onDragStart, onDragEnd, onDragOver, onDragEnter, onDragLeave, onDrop
+
+// Window Events
+onLoad, onUnload, onResize, onScroll
+
+// Media Events
+onPlay, onPause, onEnded, onLoadStart, onLoadEnd
 ```
 
-## 💡 Best Practices
+### Event Delegation
+The framework automatically uses event delegation, which means:
+- ✅ **Efficient** - One listener per event type, not per element
+- ✅ **Dynamic** - Works with elements added/removed dynamically  
+- ✅ **Memory-safe** - No orphaned event listeners
 
-### 1. Use Event Props in Virtual DOM
+## 🎯 Best Practices
+
+### 1. **Use Descriptive Handler Names**
 ```javascript
-// ✅ Preferred - declarative and clean
-RichFramework.createElement('button', {
-    onClick: handleClick
-}, 'Click Me');
+// ✅ Good - Clear function names
+function handleLoginSubmit(event) { /* ... */ }
+function handlePasswordToggle() { /* ... */ }
+function handleItemDelete(itemId) { /* ... */ }
 
-// ❌ Avoid - manual event management
-const button = document.createElement('button');
-RichFramework.events.on('click', handleClick, button);
+// ❌ Avoid - Generic names
+function handleClick() { /* ... */ }
+function handleEvent() { /* ... */ }
 ```
 
-### 2. Handle Form Events Properly
+### 2. **Prevent Default When Needed**
 ```javascript
-// ✅ Prevent default on forms
-RichFramework.createElement('form', {
+// Forms - prevent page reload
+createElement('form', {
     onSubmit: (event) => {
-        event.preventDefault(); // Always prevent default form submission
-        handleFormSubmit(event);
+        event.preventDefault();
+        // Handle form data
+    }
+});
+
+// Links - prevent navigation
+createElement('a', {
+    href: '#',
+    onClick: (event) => {
+        event.preventDefault();
+        // Custom navigation logic
     }
 });
 ```
 
-### 3. Use Global Events for Shortcuts
+### 3. **Separate Event Logic**
 ```javascript
-// ✅ Global events for app-wide shortcuts
-RichFramework.events.global('keydown', handleGlobalShortcuts);
-
-// ✅ Element events for specific interactions
-RichFramework.createElement('input', {
-    onKeydown: handleInputKeydown
-});
-```
-
-### 4. Access Native Event When Needed
-```javascript
-RichFramework.createElement('input', {
-    onKeydown: (event) => {
-        const nativeEvent = event.originalEvent;
-        
-        // Check modifier keys
-        if (nativeEvent.ctrlKey && nativeEvent.key === 'a') {
-            nativeEvent.preventDefault();
-            selectAllText();
-        }
-    }
-});
-```
-
-## 🎯 Why This Approach?
-
-### 1. **Abstraction**
-Users don't need to remember `addEventListener` syntax or manage event cleanup manually.
-
-### 2. **Consistency**
-All events work the same way, whether they're on specific elements or global.
-
-### 3. **Framework Control**
-The framework manages event lifecycle, preventing memory leaks and ensuring proper cleanup.
-
-### 4. **Audit Compliance**
-Satisfies requirements of not using `addEventListener` directly while still using it internally.
-
-## 🔧 Implementation Details
-
-Our EventManager class works like this:
-
-```javascript
-class EventManager {
-    constructor() {
-        this.customEvents = {};        // Store our event callbacks
-        this.nativeListeners = new Map(); // Track native event listeners
-    }
-
-    on(eventName, callback, element = document) {
-        // First time? Set up native listener
-        if (!this.customEvents[eventName]) {
-            this.customEvents[eventName] = [];
-            
-            // We use addEventListener internally (but users don't)
-            const handler = (e) => this.emit(eventName, e);
-            element.addEventListener(eventName, handler);
-            this.nativeListeners.set(eventName, { element, handler });
-        }
-        
-        // Add user's callback to our system
-        this.customEvents[eventName].push(callback);
-    }
-
-    emit(eventName, nativeEvent) {
-        // Call all user callbacks for this event
-        const callbacks = this.customEvents[eventName];
-        if (callbacks) {
-            callbacks.forEach(callback => callback(nativeEvent));
-        }
-    }
+// ✅ Good - Separate functions
+function handleUserLogin(userData) {
+    // Login logic here
 }
+
+createElement('button', {
+    onClick: () => handleUserLogin(currentUser)
+}, 'Login');
+
+// ❌ Avoid - Inline complex logic
+createElement('button', {
+    onClick: (event) => {
+        // 50 lines of logic here...
+    }
+}, 'Login');
 ```
 
-This way:
-- ✅ We use `addEventListener` internally (satisfying browser requirements)
-- ✅ Users never call `addEventListener` directly (satisfying framework requirements)
-- ✅ Event management is centralized and consistent
+### 4. **Use State for Dynamic Behavior**
+```javascript
+const isDisabled = createState(false);
 
-## 🎉 You're Ready!
+createElement('button', {
+    onClick: isDisabled.value ? null : handleClick,
+    disabled: isDisabled.value,
+    className: isDisabled.value ? 'disabled' : 'enabled'
+}, 'Click Me');
+```
 
-With this event system, you can handle all user interactions cleanly and efficiently. The framework takes care of the complex event management while you focus on your application logic!
+## 🔧 Internal Architecture
 
-**Next**: Learn about [State Management](state.md) to make your events update your application data reactively.
+### How Events Work
+1. **createElement()** detects event props (starting with 'on')
+2. **Event mapping** converts camelCase to DOM events (onClick → click)
+3. **Event delegation** attaches listeners to document root
+4. **Event routing** calls your handlers when events bubble up
+
+### Why Event Props?
+- **Declarative** - Events are part of element definition
+- **Automatic cleanup** - Framework manages listener lifecycle
+- **Type safety** - IDE can autocomplete event names
+- **Consistent API** - Same pattern for all event types
+
+### Performance Benefits
+- **Event delegation** - Only one listener per event type
+- **Automatic cleanup** - No memory leaks
+- **Efficient updates** - Re-uses existing listeners
+
+---
+
+**Master the event system to build truly interactive applications that respond naturally to user input!** 🎮
