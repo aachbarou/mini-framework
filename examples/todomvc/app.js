@@ -14,6 +14,7 @@ const editValue = createState('');
 
 // Local input value (not reactive)
 let inputValue = '';
+let isSubmitting = false;
 
 // Router integration
 onRouteChange((newRoute) => {
@@ -38,18 +39,24 @@ if (currentRoute === '/active') {
 
 // Todo functions
 function addTodo() {
-    if (inputValue.trim()) {
-        todos.unshift({
+    if (inputValue.trim() && !isSubmitting) {
+        isSubmitting = true;
+        const newTodos = [...todos.value, {
             id: nextTodoId++,
             text: inputValue.trim(),
             done: false
-        });
+        }];
+        todos.value = newTodos;
         inputValue = '';
         const input = document.querySelector('.new-todo');
         if (input) {
             input.value = '';
             input.focus();
         }
+        // Reset the flag after a short delay
+        setTimeout(() => {
+            isSubmitting = false;
+        }, 100);
     }
 }
 
