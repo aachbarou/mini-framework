@@ -1,6 +1,3 @@
-// Pure Event System - No window.RichFramework at all!
-// Just like your friends use
-
 class EventManager {
     constructor() {
         this.customEvents = {};
