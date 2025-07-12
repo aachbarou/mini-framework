@@ -1,70 +1,59 @@
-class EventManager {
-    constructor() {
-        this.customEvents = {};
-        this.nativeListeners = new Map();
+const eventManager = {
+  listeners: new Map(),
+  nativeHandlers: new Map(),
+  nativeEvents: new Set([
+    'click', 'keydown', 'keyup', 'input', 'change', 'submit',
+    'mousedown', 'mouseup', 'mouseover', 'mouseout', 'scroll',
+    'focus', 'blur', 'dblclick', 'beforeunload', 'load'
+  ])
+};
+
+export function on(eventName, callback, element = document) {
+  if (!eventManager.listeners.has(eventName)) {
+    eventManager.listeners.set(eventName, []);
+
+    if (eventManager.nativeEvents.has(eventName)) {
+      const handler = (event) => emit(eventName, event);
+      element.addEventListener(eventName, handler);
+      eventManager.nativeHandlers.set(eventName, { element, handler });
     }
+  }
 
-    isNativeEvent(eventName) {
-        const nativeEvents = ['click', 'keydown', 'keyup', 'input', 'change', 'submit', 
-                             'mousedown', 'mouseup', 'mouseover', 'mouseout', 'scroll',
-                             'focus', 'blur', 'dblclick', 'beforeunload', 'load'];
-        return nativeEvents.includes(eventName);
-    }
-
-    on(eventName, callback, element = document) {
-        if (!this.customEvents[eventName]) {
-            this.customEvents[eventName] = [];
-
-            if (this.isNativeEvent(eventName)) {
-                const handler = (e) => this.emit(eventName, e);
-                element.addEventListener(eventName, handler);
-                this.nativeListeners.set(eventName, { element, handler });
-            }
-        }
-
-        this.customEvents[eventName].push(callback);
-    }
-
-    off(eventName, callback) {
-        if (!this.customEvents[eventName]) return;
-
-        this.customEvents[eventName] = this.customEvents[eventName].filter(
-            cb => cb !== callback
-        );
-
-        if (this.customEvents[eventName].length === 0) {
-            const nativeListener = this.nativeListeners.get(eventName);
-            if (nativeListener) {
-                nativeListener.element.removeEventListener(eventName, nativeListener.handler);
-                this.nativeListeners.delete(eventName);
-            }
-            delete this.customEvents[eventName];
-        }
-    }
-
-    emit(eventName, data) {
-        const listeners = this.customEvents[eventName];
-        if (listeners) {
-            listeners.forEach(callback => callback(data));
-        }
-    }
-}
-
-const eventManager = new EventManager();
-
-export function on(eventName, callback, element) {
-    return eventManager.on(eventName, callback, element);
+  eventManager.listeners.get(eventName).push(callback);
 }
 
 export function off(eventName, callback) {
-    return eventManager.off(eventName, callback);
+  if (!eventManager.listeners.has(eventName)) {
+    return;
+  }
+
+  const updatedListeners = eventManager.listeners.get(eventName).filter(
+    (cb) => cb !== callback
+  );
+
+  if (updatedListeners.length > 0) {
+    eventManager.listeners.set(eventName, updatedListeners);
+  } else {
+    eventManager.listeners.delete(eventName);
+    const nativeHandler = eventManager.nativeHandlers.get(eventName);
+    if (nativeHandler) {
+      nativeHandler.element.removeEventListener(eventName, nativeHandler.handler);
+      eventManager.nativeHandlers.delete(eventName);
+    }
+  }
 }
 
 export function emit(eventName, data) {
-    return eventManager.emit(eventName, data);
+  if (!eventManager.listeners.has(eventName)) {
+    return;
+  }
+
+  for (const callback of eventManager.listeners.get(eventName)) {
+    callback(data);
+  }
 }
 
 export function onGlobal(eventName, callback) {
-    const targetElement = (eventName === 'beforeunload' || eventName === 'load') ? window : document;
-    return eventManager.on(eventName, callback, targetElement);
+  const target = (eventName === 'beforeunload' || eventName === 'load') ? window : document;
+  on(eventName, callback, target);
 }
